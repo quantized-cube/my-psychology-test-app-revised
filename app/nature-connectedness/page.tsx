@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
+import { interpretations, questions, reverseItems } from '@/app/data/nature-connectedness';
+import { adjustedScores, allAnswered, average, scoreByInterpretation } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -23,39 +25,11 @@ ChartJS.register(
   Legend
 );
 
-const questions = [
-  '私はしばしば、周囲の自然界との一体感を感じることがあります。',
-  '私は自然界を、自分が属しているコミュニティとして考えています。',
-  '私は他の生き物たちの知性を認識し、尊重しています。',
-  '私はしばしば、自然から切り離されているように感じます。', // 逆転項目
-  '自分の人生について考えるとき、私はより大きな「生の循環プロセス」の一部だと感じます。',
-  '私はしばしば、動物や植物と親しみを感じます。',
-  '私は地球が私に属するのと同じように、私も地球に属していると感じます。',
-  '自分の行動が自然界にどのような影響を与えるかについて、深い理解があります。',
-  '私はしばしば、生命のネットワークの一部であると感じます。',
-  '私は、人間もそうでない存在も、すべての地球上の生命が共通の「生命力」を共有していると感じます。',
-  '木が森の一部であるように、私は広い自然界の中に埋め込まれていると感じます。',
-  '地球上の自分の位置を考えると、私は自然の中で最上位にいる存在だと思います。', // 逆転項目
-  '私はしばしば、自分が周囲の自然界の中でほんの小さな存在であり、地面の草や木の上の鳥と同じように重要なのだと感じます。',
-  '私自身の幸福は、自然界の幸福とは関係がないと思います。', // 逆転項目
-];
-
-// 逆転項目のインデックス（0ベース）
-const reverseItems = [3, 11, 13];
-
-const interpretations = [
-  { range: '1.0 - 1.4', level: '非常に低い（切断的）', description: '自然との関係性がほとんど意識されておらず、環境への関心も乏しい可能性があります。' },
-  { range: '1.5 - 2.4', level: 'やや低い', description: '自然との心理的距離があり、意識的に関わろうとしない傾向があります。' },
-  { range: '2.5 - 3.4', level: '中程度（平均的）', description: '自然を感じることはありますが、都市的な生活が中心でつながりがやや希薄な状態です。' },
-  { range: '3.5 - 4.4', level: 'やや高い', description: '日常的に自然を身近に感じており、心の安定や幸福感との結びつきも見られます。' },
-  { range: '4.5 - 5.0', level: '非常に高い', description: '自然との一体感が強く、自然保護への関心も高い状態です。環境への行動も積極的である傾向があります。' },
-];
-
 export default function NatureConnectedness() {
   const [scores, setScores] = useState<number[]>(Array(questions.length).fill(0));
   const [showResults, setShowResults] = useState(false);
   
-  const shouldShowResultsButton = scores.every((score) => score !== 0);
+  const shouldShowResultsButton = allAnswered(scores);
 
   const handleAnswer = (index: number, score: number) => {
     const newScores = [...scores];
@@ -63,29 +37,19 @@ export default function NatureConnectedness() {
     setScores(newScores);
   };
 
-  const calculateFinalScore = () => {
-    const adjustedScores = scores.map((score, index) => {
-      // 逆転項目の場合はスコアを反転
-      if (reverseItems.includes(index)) {
-        return 6 - score; // 1→5, 2→4, 3→3, 4→2, 5→1
-      }
-      return score;
-    });
-    
-    const total = adjustedScores.reduce((sum, score) => sum + score, 0);
-    return total / questions.length;
-  };
+  const calculateFinalScore = () => average(adjustedScores(scores, reverseItems, 6));
 
   const finalScore = calculateFinalScore();
 
-  const getInterpretation = (score: number) => {
-    if (score >= 1.0 && score <= 1.4) return interpretations[0];
-    if (score >= 1.5 && score <= 2.4) return interpretations[1];
-    if (score >= 2.5 && score <= 3.4) return interpretations[2];
-    if (score >= 3.5 && score <= 4.4) return interpretations[3];
-    if (score >= 4.5 && score <= 5.0) return interpretations[4];
-    return interpretations[2]; // デフォルト
-  };
+  const getInterpretation = (score: number) => scoreByInterpretation(
+    score,
+    interpretations,
+    (interpretation) => {
+      const [min, max] = interpretation.range.split(' - ').map(Number);
+      return score >= min && score <= max;
+    },
+    2,
+  );
 
   const handleShowResults = () => {
     setShowResults(true);

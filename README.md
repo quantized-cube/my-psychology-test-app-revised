@@ -6,6 +6,9 @@ Deployed on Vercel: https://my-psychology-test-app.vercel.app/
 
 ## Getting Started
 
+Use Node.js 24 LTS. This repository includes `.nvmrc` and `.node-version`
+so version managers can select the expected runtime.
+
 First, run the development server:
 
 ```bash
@@ -16,6 +19,13 @@ yarn dev
 pnpm dev
 # or
 bun dev
+```
+
+Before refactoring or deploying, run:
+
+```bash
+npm run lint
+npm run build
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
