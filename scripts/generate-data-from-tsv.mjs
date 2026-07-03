@@ -94,6 +94,54 @@ function readExportedStringArray(filePath, exportName) {
   });
 }
 
+function readExportedObjectStringPropertyArray(filePath, exportName, propertyName) {
+  const source = ts.createSourceFile(
+    filePath,
+    readFileSync(filePath, 'utf8'),
+    ts.ScriptTarget.Latest,
+    true,
+  );
+  let initializer;
+
+  function visit(node) {
+    if (
+      ts.isVariableDeclaration(node)
+      && ts.isIdentifier(node.name)
+      && node.name.text === exportName
+      && ts.isArrayLiteralExpression(node.initializer)
+    ) {
+      initializer = node.initializer;
+      return;
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(source);
+
+  if (!initializer) {
+    return null;
+  }
+
+  return initializer.elements.map((element) => {
+    if (!ts.isObjectLiteralExpression(element)) {
+      throw new Error(`${filePath}: ${exportName} must contain only object literals`);
+    }
+
+    const property = element.properties.find((candidate) => (
+      ts.isPropertyAssignment(candidate)
+      && ts.isIdentifier(candidate.name)
+      && candidate.name.text === propertyName
+    ));
+
+    if (!property || !ts.isPropertyAssignment(property) || !ts.isStringLiteral(property.initializer)) {
+      throw new Error(`${filePath}: ${exportName}.${propertyName} must contain only string literals`);
+    }
+
+    return property.initializer.text;
+  });
+}
+
 function validateGroups(fileName, rows) {
   const groupLabels = [...new Set(rows.map((row) => row.group).filter(Boolean))];
 
@@ -103,7 +151,8 @@ function validateGroups(fileName, rows) {
 
   const moduleName = basename(fileName, '.tsv');
   const expectedLabels = expectedGroupLabelsByFile[fileName]
-    ?? readExportedStringArray(join(rootDir, 'app', 'data', `${moduleName}.ts`), 'labels');
+    ?? readExportedStringArray(join(rootDir, 'app', 'data', `${moduleName}.ts`), 'labels')
+    ?? readExportedObjectStringPropertyArray(join(rootDir, 'app', 'data', `${moduleName}.ts`), 'schemaLabels', 'code');
 
   if (!expectedLabels) {
     return groupLabels;
