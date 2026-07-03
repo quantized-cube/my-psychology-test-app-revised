@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
+import { ScoreButtons, ShowResultsButton, ToggleButton } from '@/app/components/questionnaire';
 import { labels, questions } from '@/app/data/career-anchors';
 import { addScores, allAnswered, sortLabeledScores, sum } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
@@ -170,39 +171,30 @@ export default function Home() {
         {questions.map((question, index) => (
           <div key={index}>
             <h3>{question}</h3>
-            {[1, 2, 3, 4, 5, 6].map((score) => (
-              <button
-                key={score}
-                onClick={() => handleAnswer(index, score)}
-                className={scores[index] === score ? 'selected' : ''}
-                disabled={showResults} // 結果表示中はボタンを無効化
-              >
-                {score}
-              </button>
-            ))}
+            <ScoreButtons
+              options={[1, 2, 3, 4, 5, 6]}
+              selectedScore={scores[index]}
+              onSelect={(score) => handleAnswer(index, score)}
+              disabled={showResults}
+            />
             &ensp;
-            {['☆'].map((score) => (
-              <button
-                key={score}
-                onClick={() => handleAdditionalAnswer(index, score)}
-                className={additionalScores[index] === 4 ? 'selected' : ''}
-                disabled={showResults} // 結果表示中はボタンを無効化
-              >
-                {score}
-              </button>
-            ))}
+            <ToggleButton
+              label="☆"
+              onClick={() => handleAdditionalAnswer(index, '☆')}
+              selected={additionalScores[index] === 4}
+              disabled={showResults}
+            />
           </div>
         ))}
         <hr style={{ margin: '30px' }} />
         <p>
           ひとたび回答し終わりましたら、自分の回答全体をながめ最も高い点数をつけた項目がどこにあるかチェックしてください。<br />さらに、そのなかから自分にいちばんピッタリする項目を<b>3つ</b>選んでください。
         </p>
-        {shouldShowResultsButton && <hr style={{ margin: '30px' }} />}
-        {shouldShowResultsButton && !showResults && (
-          <div style={{ marginTop: '30px' }}>
-            <button onClick={handleShowResults}>結果を表示</button>
-          </div>
-        )}
+        <ShowResultsButton
+          canShow={shouldShowResultsButton}
+          showResults={showResults}
+          onShow={handleShowResults}
+        />
         {showResults && ( // 結果を表示する場合に表示
           <div>
             <h2>結果</h2>

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
+import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
+import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { interpretations, questions, reverseItems } from '@/app/data/nfc';
-import { adjustedScores, allAnswered, scoreByInterpretation, sum } from '@/app/lib/scoring';
+import { adjustedScores, scoreByInterpretation, sum } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -26,16 +27,13 @@ ChartJS.register(
 );
 
 export default function NatureConnectedness() {
-  const [scores, setScores] = useState<number[]>(Array(questions.length).fill(0));
-  const [showResults, setShowResults] = useState(false);
-  
-  const shouldShowResultsButton = allAnswered(scores);
-
-  const handleAnswer = (index: number, score: number) => {
-    const newScores = [...scores];
-    newScores[index] = score;
-    setScores(newScores);
-  };
+  const {
+    scores,
+    showResults,
+    canShowResults: shouldShowResultsButton,
+    answer: handleAnswer,
+    show: handleShowResults,
+  } = useQuestionnaire({ questionCount: questions.length });
 
   const calculateFinalScore = () => sum(adjustedScores(scores, reverseItems, 7));
 
@@ -50,10 +48,6 @@ export default function NatureConnectedness() {
     },
     1,
   );
-
-  const handleShowResults = () => {
-    setShowResults(true);
-  };
 
   // 棒グラフのデータ
   const barChartData = {
@@ -137,25 +131,20 @@ export default function NatureConnectedness() {
             <h3>
               {question}
             </h3>
-            {[1, 2, 3, 4, 5, 6].map((score) => (
-              <button
-                key={score}
-                onClick={() => handleAnswer(index, score)}
-                className={scores[index] === score ? 'selected' : ''}
-                disabled={showResults}
-              >
-                {score}
-              </button>
-            ))}
+            <ScoreButtons
+              options={[1, 2, 3, 4, 5, 6]}
+              selectedScore={scores[index]}
+              onSelect={(score) => handleAnswer(index, score)}
+              disabled={showResults}
+            />
           </div>
         ))}
 
-        {shouldShowResultsButton && <hr style={{ margin: '30px' }} />}
-        {shouldShowResultsButton && !showResults && (
-          <div style={{ marginTop: '30px' }}>
-            <button onClick={handleShowResults}>結果を表示</button>
-          </div>
-        )}
+        <ShowResultsButton
+          canShow={shouldShowResultsButton}
+          showResults={showResults}
+          onShow={handleShowResults}
+        />
 
         {showResults && (
           <div>

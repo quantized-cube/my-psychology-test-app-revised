@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
+import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
+import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { labels, questions, scoreScales } from '@/app/data/time-perspective';
-import { allAnswered, averageTerms, sortLabeledScores } from '@/app/lib/scoring';
+import { averageTerms, sortLabeledScores } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
 import {
   Chart as ChartJS,
@@ -28,26 +30,19 @@ ChartJS.register(
 
 
 export default function Home() {
-  const [scores, setScores] = useState<number[]>(Array(questions.length).fill(0));
-  const [showResults, setShowResults] = useState(false); // 結果を表示するための状態
-  const shouldShowResultsButton = allAnswered(scores); // scoresに0が含まれていないかチェック
+  const {
+    scores,
+    showResults,
+    canShowResults: shouldShowResultsButton,
+    answer: handleAnswer,
+    show: handleShowResults,
+  } = useQuestionnaire({ questionCount: questions.length });
   const [sortDescending, setSortDescending] = useState(false); // スコアの降順ソートトグル
-
-  const handleAnswer = (index: number, score: number) => {
-    const newScores = [...scores];
-    newScores[index] = score;
-    setScores(newScores);
-  };
 
   const averageScores = scoreScales.map((scale) => averageTerms(scores, scale));
   const sortedScores = sortLabeledScores(labels, averageScores, 'desc');
   const sortedLabels = sortedScores.map((score) => score.label);
   const sortedAverageScores = sortedScores.map((score) => score.value);
-
-  const handleShowResults = () => {
-    // 結果を表示するボタンをクリックしたら結果を表示
-    setShowResults(true);
-  };
 
   const handleToggleSort = () => {
     // スコアのソート順を切り替える
@@ -118,24 +113,19 @@ export default function Home() {
         {questions.map((question, index) => (
           <div key={index}>
             <h3>{question}</h3>
-            {[1, 2, 3, 4, 5].map((score) => (
-              <button
-                key={score}
-                onClick={() => handleAnswer(index, score)}
-                className={scores[index] === score ? 'selected' : ''}
-                disabled={showResults} // 結果表示中はボタンを無効化
-              >
-                {score}
-              </button>
-            ))}
+            <ScoreButtons
+              options={[1, 2, 3, 4, 5]}
+              selectedScore={scores[index]}
+              onSelect={(score) => handleAnswer(index, score)}
+              disabled={showResults}
+            />
           </div>
         ))}
-        {shouldShowResultsButton && <hr style={{ margin: '30px' }} />}
-        {shouldShowResultsButton && !showResults && (
-          <div style={{ marginTop: '30px' }}>
-            <button onClick={handleShowResults}>結果を表示</button>
-          </div>
-        )}
+        <ShowResultsButton
+          canShow={shouldShowResultsButton}
+          showResults={showResults}
+          onShow={handleShowResults}
+        />
         {showResults && ( // 結果を表示する場合に表示
           <div>
             <h2>結果</h2>

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
-import { allAnswered, sum } from '@/app/lib/scoring';
+import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
+import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
+import { sum } from '@/app/lib/scoring';
 
 const questions = [
   '質問1: このテストは役に立つと思いますか？',
@@ -13,15 +14,13 @@ const questions = [
 ];
 
 export default function Home() {
-  const [scores, setScores] = useState<number[]>(Array(questions.length).fill(0));
-  const [showResults, setShowResults] = useState(false); // 結果を表示するための状態
-  const shouldShowResultsButton = allAnswered(scores); // scoresに0が含まれていないかチェック
-
-  const handleAnswer = (index: number, score: number) => {
-    const newScores = [...scores];
-    newScores[index] = score;
-    setScores(newScores);
-  };
+  const {
+    scores,
+    showResults,
+    canShowResults: shouldShowResultsButton,
+    answer: handleAnswer,
+    show: handleShowResults,
+  } = useQuestionnaire({ questionCount: questions.length });
 
   const totalScore = sum(scores);
   const totalScore_1 = sum(scores.slice(0, 2));
@@ -29,11 +28,6 @@ export default function Home() {
   const resultMessage = `合計スコア ${totalScore}`;
   const resultMessage1 = `1と2の合計スコア ${totalScore_1}`;
   const resultMessage2 = `3と4の合計スコア ${totalScore_2}`;
-
-  const handleShowResults = () => {
-    // 結果を表示するボタンをクリックしたら結果を表示
-    setShowResults(true);
-  };
 
   return (
     <div>
@@ -47,23 +41,19 @@ export default function Home() {
         {questions.map((question, index) => (
           <div key={index}>
             <h2>{question}</h2>
-            {[1, 2, 3, 4, 5, 6].map((score) => (
-              <button
-                key={score}
-                onClick={() => handleAnswer(index, score)}
-                className={scores[index] === score ? 'selected' : ''}
-              // disabled={showResults} // 結果表示中はボタンを無効化
-              >
-                {score}
-              </button>
-            ))}
+            <ScoreButtons
+              options={[1, 2, 3, 4, 5, 6]}
+              selectedScore={scores[index]}
+              onSelect={(score) => handleAnswer(index, score)}
+            />
           </div>
         ))}
-        {shouldShowResultsButton && !showResults && (
-          <div style={{ marginTop: '30px' }}>
-            <button onClick={handleShowResults}>結果を表示</button>
-          </div>
-        )}
+        <ShowResultsButton
+          canShow={shouldShowResultsButton}
+          showResults={showResults}
+          onShow={handleShowResults}
+          withDivider={false}
+        />
         {showResults && ( // 結果を表示する場合に表示
           <div>
             <hr style={{ margin: '30px' }} />
