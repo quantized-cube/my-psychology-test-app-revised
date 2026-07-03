@@ -38,6 +38,7 @@ export default function NatureConnectedness() {
     backgroundColor: ['rgba(34, 139, 34, 0.6)'],
     borderColor: ['rgba(34, 139, 34, 1)'],
     borderWidth: 2,
+    withHoverColors: false,
   });
   const chartOptions = singleValueBarOptions({
     title: '認知の複雑さ（の低さ）',

@@ -60,6 +60,7 @@ type BarChartDataParams = {
   borderWidth?: number;
   hoverBackgroundColor?: ChartColor;
   hoverBorderColor?: ChartColor;
+  withHoverColors?: boolean;
 };
 
 export { Bar, Radar, Scatter };
@@ -149,19 +150,22 @@ export function barChartData({
   borderWidth = 3,
   hoverBackgroundColor = 'rgba(80, 200, 200, 0.8)',
   hoverBorderColor = 'rgba(75, 192, 192, 1)',
+  withHoverColors = true,
 }: BarChartDataParams) {
+  const dataset = {
+    label,
+    data: [...data],
+    borderColor,
+    backgroundColor,
+    borderWidth,
+    ...(withHoverColors ? {
+      hoverBackgroundColor,
+      hoverBorderColor,
+    } : {}),
+  };
+
   return {
     labels: [...labels],
-    datasets: [
-      {
-        label,
-        data: [...data],
-        borderColor,
-        backgroundColor,
-        borderWidth,
-        hoverBackgroundColor,
-        hoverBorderColor,
-      },
-    ],
+    datasets: [dataset],
   };
 }
