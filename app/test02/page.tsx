@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
 import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
-import { allAnswered, sum } from '@/app/lib/scoring';
+import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
+import { sum } from '@/app/lib/scoring';
 
 const questions = [
   '質問1: このテストは役に立つと思いますか？',
@@ -14,15 +14,13 @@ const questions = [
 ];
 
 export default function Home() {
-  const [scores, setScores] = useState<number[]>(Array(questions.length).fill(0));
-  const [showResults, setShowResults] = useState(false); // 結果を表示するための状態
-  const shouldShowResultsButton = allAnswered(scores); // scoresに0が含まれていないかチェック
-
-  const handleAnswer = (index: number, score: number) => {
-    const newScores = [...scores];
-    newScores[index] = score;
-    setScores(newScores);
-  };
+  const {
+    scores,
+    showResults,
+    canShowResults: shouldShowResultsButton,
+    answer: handleAnswer,
+    show: handleShowResults,
+  } = useQuestionnaire({ questionCount: questions.length });
 
   const totalScore = sum(scores);
   const totalScore_1 = sum(scores.slice(0, 2));
@@ -30,11 +28,6 @@ export default function Home() {
   const resultMessage = `合計スコア ${totalScore}`;
   const resultMessage1 = `1と2の合計スコア ${totalScore_1}`;
   const resultMessage2 = `3と4の合計スコア ${totalScore_2}`;
-
-  const handleShowResults = () => {
-    // 結果を表示するボタンをクリックしたら結果を表示
-    setShowResults(true);
-  };
 
   return (
     <div>
