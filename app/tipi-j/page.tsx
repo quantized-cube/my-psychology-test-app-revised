@@ -4,7 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link'
 import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
-import { labels, questions, questionRows, reverseMax } from '@/app/data/tipi-j';
+import { labels, questions, questionRows, reverseMax, scoreOptions } from '@/app/data/tipi-j';
 import { sumQuestionRowGroups } from '@/app/lib/scoring';
 import { Radar } from 'react-chartjs-2'; // react-chartjs-2をインポート
 import {
@@ -138,7 +138,7 @@ export default function Home() {
           <div key={index}>
             <h3>{question}</h3>
             <ScoreButtons
-              options={[1, 2, 3, 4, 5, 6, 7]}
+              options={scoreOptions}
               selectedScore={scores[index]}
               onSelect={(score) => handleAnswer(index, score)}
               disabled={showResults}

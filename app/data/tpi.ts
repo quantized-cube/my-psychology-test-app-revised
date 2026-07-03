@@ -7,6 +7,7 @@ export const labels = [
   '超越未来型'  // 56+1, ..., 56+5*, ..., 56+10
 ];
 
+export const scoreOptions = [1, 2, 3, 4, 5];
 export const reverseMax = 6;
 
 export { questionRows, questions } from './generated/tpi';

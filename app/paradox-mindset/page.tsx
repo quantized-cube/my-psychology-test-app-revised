@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
 import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
-import { questionsParadox, questionsTension } from '@/app/data/paradox-mindset';
+import { questionsParadox, questionsTension, scoreOptions } from '@/app/data/paradox-mindset';
 import { allAnswered, average } from '@/app/lib/scoring';
 import {
   Chart as ChartJS,
@@ -213,7 +213,7 @@ export default function Home() {
           <div key={index}>
             <h3>{question}</h3>
             <ScoreButtons
-              options={[1, 2, 3, 4, 5, 6, 7]}
+              options={scoreOptions}
               selectedScore={scoresTension[index]}
               onSelect={(score) => handleAnswerTension(index, score)}
               disabled={showResults}
@@ -226,7 +226,7 @@ export default function Home() {
           <div key={index}>
             <h3>{question}</h3>
             <ScoreButtons
-              options={[1, 2, 3, 4, 5, 6, 7]}
+              options={scoreOptions}
               selectedScore={scoresParadox[index]}
               onSelect={(score) => handleAnswerParadox(index, score)}
               disabled={showResults}

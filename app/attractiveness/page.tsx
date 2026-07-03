@@ -5,7 +5,7 @@ import Head from 'next/head';
 import Link from 'next/link'
 import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
-import { labels, questionGroups, questions } from '@/app/data/attractiveness';
+import { labels, questionGroups, questions, scoreOptions } from '@/app/data/attractiveness';
 import { cumulativeLengths, sortLabeledScores, sumGroups } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
 import {
@@ -149,7 +149,7 @@ export default function Home() {
             {cumLengths.includes(index) && <h2>{labels[cumLengths.indexOf(index)]}</h2>}
             <h3>{question}</h3>
             <ScoreButtons
-              options={[1, 2, 3, 4, 5]}
+              options={scoreOptions}
               selectedScore={scores[index]}
               onSelect={(score) => handleAnswer(index, score)}
               disabled={showResults}

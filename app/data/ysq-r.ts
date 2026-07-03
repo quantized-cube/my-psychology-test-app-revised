@@ -44,4 +44,6 @@ export const dictLabels: { [key: string]: string } = {
   'PUO': '罰するべき（他人）',
 };
 
+export const scoreOptions = [1, 2, 3, 4, 5, 6];
+
 export { questionGroups, questions } from './generated/ysq-r';

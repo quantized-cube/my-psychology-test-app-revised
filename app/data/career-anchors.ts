@@ -9,4 +9,6 @@ export const labels = [
   '生活様式',
 ];
 
+export const scoreOptions = [1, 2, 3, 4, 5, 6];
+
 export { questions } from './generated/career-anchors';

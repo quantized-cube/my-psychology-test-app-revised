@@ -1,5 +1,7 @@
 export { questions, reverseItems } from './generated/nature-connectedness';
 
+export const scoreOptions = [1, 2, 3, 4, 5];
+
 export const interpretations = [
   { range: '1.0 - 1.4', level: '非常に低い（切断的）', description: '自然との関係性がほとんど意識されておらず、環境への関心も乏しい可能性があります。' },
   { range: '1.5 - 2.4', level: 'やや低い', description: '自然との心理的距離があり、意識的に関わろうとしない傾向があります。' },

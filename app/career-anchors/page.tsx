@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
 import { ScoreButtons, ShowResultsButton, ToggleButton } from '@/app/components/questionnaire';
-import { labels, questions } from '@/app/data/career-anchors';
+import { labels, questions, scoreOptions } from '@/app/data/career-anchors';
 import { addScores, allAnswered, sortLabeledScores, sum } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
 import {
@@ -172,7 +172,7 @@ export default function Home() {
           <div key={index}>
             <h3>{question}</h3>
             <ScoreButtons
-              options={[1, 2, 3, 4, 5, 6]}
+              options={scoreOptions}
               selectedScore={scores[index]}
               onSelect={(score) => handleAnswer(index, score)}
               disabled={showResults}

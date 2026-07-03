@@ -6,6 +6,7 @@ export const labels = [
   '未来志向型',    // 6，9，10，13，18，21，24，30，40，43，45，51，56
 ];
 
+export const scoreOptions = [1, 2, 3, 4, 5];
 export const reverseMax = 6;
 
 export { questionRows, questions } from './generated/time-perspective';
