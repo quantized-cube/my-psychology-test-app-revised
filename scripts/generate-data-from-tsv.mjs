@@ -98,7 +98,7 @@ function validateGroups(fileName, rows) {
   const groupLabels = [...new Set(rows.map((row) => row.group).filter(Boolean))];
 
   if (groupLabels.length === 0) {
-    return;
+    return null;
   }
 
   const moduleName = basename(fileName, '.tsv');
@@ -106,19 +106,25 @@ function validateGroups(fileName, rows) {
     ?? readExportedStringArray(join(rootDir, 'app', 'data', `${moduleName}.ts`), 'labels');
 
   if (!expectedLabels) {
-    return;
+    return groupLabels;
   }
 
-  if (groupLabels.join('\t') !== expectedLabels.join('\t')) {
+  const sortedGroupLabels = [...groupLabels].sort();
+  const sortedExpectedLabels = [...expectedLabels].sort();
+
+  if (sortedGroupLabels.join('\t') !== sortedExpectedLabels.join('\t')) {
     throw new Error(
       `${fileName}: group labels must match app/data/${moduleName}.ts labels. `
       + `Expected [${expectedLabels.join(', ')}], got [${groupLabels.join(', ')}]`,
     );
   }
+
+  return expectedLabels;
 }
 
-function generateModule(rows) {
-  const groupLabels = [...new Set(rows.map((row) => row.group).filter(Boolean))];
+function generateModule(rows, orderedGroupLabels) {
+  const groupLabels = orderedGroupLabels
+    ?? [...new Set(rows.map((row) => row.group).filter(Boolean))];
   const questionGroups = groupLabels.map((group) => rows
     .filter((row) => row.group === group)
     .map((row) => row.text));
@@ -149,6 +155,6 @@ mkdirSync(outputDir, { recursive: true });
 for (const fileName of readdirSync(tsvDir).filter((file) => file.endsWith('.tsv')).sort()) {
   const outputName = `${basename(fileName, '.tsv')}.ts`;
   const rows = parseTsv(fileName);
-  validateGroups(fileName, rows);
-  writeFileSync(join(outputDir, outputName), generateModule(rows), 'utf8');
+  const orderedGroupLabels = validateGroups(fileName, rows);
+  writeFileSync(join(outputDir, outputName), generateModule(rows, orderedGroupLabels), 'utf8');
 }

@@ -1,5 +1,3 @@
-import type { ScoreTerm } from '@/app/lib/scoring';
-
 export const labels = [
   '過去肯定型',    // 2，7，11，15，20，25*，29，41*，49
   '過去否定型',    // 4，5，16，22，27，33，34，36，50，54
@@ -9,13 +7,6 @@ export const labels = [
   '超越未来型'  // 56+1, ..., 56+5*, ..., 56+10
 ];
 
-export const scoreScales: ScoreTerm[][] = [
-  [2, 7, 11, 15, 20, { item: 25, reverseMax: 6 }, 29, { item: 41, reverseMax: 6 }, 49],
-  [4, 5, 16, 22, { item: 27, reverseMax: 6 }, 33, 34, 36, 50, 54],
-  [1, 8, 12, 17, 19, 23, 26, 28, 31, 32, 42, 44, 46, 48, 55],
-  [3, 14, 35, 37, 38, 39, 47, 52, 53],
-  [6, { item: 9, reverseMax: 6 }, 10, 13, 18, 21, { item: 24, reverseMax: 6 }, 30, 40, 43, 45, 51, { item: 56, reverseMax: 6 }],
-  [57, 58, 59, 60, { item: 61, reverseMax: 6 }, 62, 63, 64, 65, 66],
-];
+export const reverseMax = 6;
 
-export { questions } from './generated/tpi';
+export { questionRows, questions } from './generated/tpi';

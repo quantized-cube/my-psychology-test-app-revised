@@ -5,8 +5,8 @@ import Head from 'next/head';
 import Link from 'next/link'
 import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
-import { labels, questions, scoreScales } from '@/app/data/time-perspective';
-import { averageTerms, sortLabeledScores } from '@/app/lib/scoring';
+import { labels, questions, questionRows, reverseMax } from '@/app/data/time-perspective';
+import { averageQuestionRowGroups, sortLabeledScores } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
 import {
   Chart as ChartJS,
@@ -39,7 +39,7 @@ export default function Home() {
   } = useQuestionnaire({ questionCount: questions.length });
   const [sortDescending, setSortDescending] = useState(false); // スコアの降順ソートトグル
 
-  const averageScores = scoreScales.map((scale) => averageTerms(scores, scale));
+  const averageScores = averageQuestionRowGroups(scores, questionRows, labels, reverseMax);
   const sortedScores = sortLabeledScores(labels, averageScores, 'desc');
   const sortedLabels = sortedScores.map((score) => score.label);
   const sortedAverageScores = sortedScores.map((score) => score.value);
