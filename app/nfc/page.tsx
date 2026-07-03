@@ -2,7 +2,7 @@
 
 import Head from 'next/head';
 import Link from 'next/link'
-import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
+import { QuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { interpretations, questions, reverseItems, scoreOptions } from '@/app/data/nfc';
 import { adjustedScores, scoreByInterpretation, sum } from '@/app/lib/scoring';
@@ -126,19 +126,13 @@ export default function NatureConnectedness() {
         <hr style={{ margin: '30px' }} />
         
         <h2>質問</h2>
-        {questions.map((question, index) => (
-          <div key={index}>
-            <h3>
-              {question}
-            </h3>
-            <ScoreButtons
-              options={scoreOptions}
-              selectedScore={scores[index]}
-              onSelect={(score) => handleAnswer(index, score)}
-              disabled={showResults}
-            />
-          </div>
-        ))}
+        <QuestionList
+          questions={questions}
+          scores={scores}
+          scoreOptions={scoreOptions}
+          onAnswer={handleAnswer}
+          disabled={showResults}
+        />
 
         <ShowResultsButton
           canShow={shouldShowResultsButton}

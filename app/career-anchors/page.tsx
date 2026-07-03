@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
-import { ScoreButtons, ShowResultsButton, ToggleButton } from '@/app/components/questionnaire';
+import { QuestionList, ShowResultsButton, ToggleButton } from '@/app/components/questionnaire';
 import { labels, questions, scoreOptions } from '@/app/data/career-anchors';
 import { addScores, allAnswered, sortLabeledScores, sum } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
@@ -53,7 +53,7 @@ export default function Home() {
     newScores[index] = score;
     setScores(newScores);
   };
-  const handleAdditionalAnswer = (index: number, score: string) => {
+  const handleAdditionalAnswer = (index: number) => {
     const newAdditionalScores = [...additionalScores];
     if (newAdditionalScores[index] === 4) {
       newAdditionalScores[index] = 0;
@@ -168,24 +168,24 @@ export default function Home() {
           ☆については、最後に説明があります。
         </p>
 
-        {questions.map((question, index) => (
-          <div key={index}>
-            <h3>{question}</h3>
-            <ScoreButtons
-              options={scoreOptions}
-              selectedScore={scores[index]}
-              onSelect={(score) => handleAnswer(index, score)}
-              disabled={showResults}
-            />
-            &ensp;
-            <ToggleButton
-              label="☆"
-              onClick={() => handleAdditionalAnswer(index, '☆')}
-              selected={additionalScores[index] === 4}
-              disabled={showResults}
-            />
-          </div>
-        ))}
+        <QuestionList
+          questions={questions}
+          scores={scores}
+          scoreOptions={scoreOptions}
+          onAnswer={handleAnswer}
+          disabled={showResults}
+          renderAfterScoreButtons={(index) => (
+            <>
+              &ensp;
+              <ToggleButton
+                label="☆"
+                onClick={() => handleAdditionalAnswer(index)}
+                selected={additionalScores[index] === 4}
+                disabled={showResults}
+              />
+            </>
+          )}
+        />
         <hr style={{ margin: '30px' }} />
         <p>
           ひとたび回答し終わりましたら、自分の回答全体をながめ最も高い点数をつけた項目がどこにあるかチェックしてください。<br />さらに、そのなかから自分にいちばんピッタリする項目を<b>3つ</b>選んでください。

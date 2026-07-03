@@ -2,7 +2,7 @@
 
 import Head from 'next/head';
 import Link from 'next/link'
-import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
+import { QuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { sum } from '@/app/lib/scoring';
 
@@ -38,16 +38,13 @@ export default function Home() {
 
       <main>
         <h1>心理テスト02</h1>
-        {questions.map((question, index) => (
-          <div key={index}>
-            <h2>{question}</h2>
-            <ScoreButtons
-              options={[1, 2, 3, 4, 5, 6]}
-              selectedScore={scores[index]}
-              onSelect={(score) => handleAnswer(index, score)}
-            />
-          </div>
-        ))}
+        <QuestionList
+          questions={questions}
+          scores={scores}
+          scoreOptions={[1, 2, 3, 4, 5, 6]}
+          onAnswer={handleAnswer}
+          questionHeadingLevel={2}
+        />
         <ShowResultsButton
           canShow={shouldShowResultsButton}
           showResults={showResults}

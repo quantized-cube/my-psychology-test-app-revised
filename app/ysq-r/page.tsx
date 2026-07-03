@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
-import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
+import { GroupedQuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { labels, questionGroups, questions, schemaLabels, scoreOptions } from '@/app/data/ysq-r';
 import { averageGroups, cumulativeLengths, sortLabeledScores } from '@/app/lib/scoring';
@@ -145,19 +145,15 @@ export default function Home() {
           6 = 完璧に当てはまる
         </p>
 
-        {questions.map((question, index) => (
-          <div key={index}>
-            {cumLengths.includes(index) && <hr style={{ margin: '30px' }} />}
-            {cumLengths.includes(index) && <h2>{labels[cumLengths.indexOf(index)]}</h2>}
-            <h3>{question}</h3>
-            <ScoreButtons
-              options={scoreOptions}
-              selectedScore={scores[index]}
-              onSelect={(score) => handleAnswer(index, score)}
-              disabled={showResults}
-            />
-          </div>
-        ))}
+        <GroupedQuestionList
+          questions={questions}
+          scores={scores}
+          scoreOptions={scoreOptions}
+          onAnswer={handleAnswer}
+          disabled={showResults}
+          groupStarts={cumLengths}
+          groupLabels={labels}
+        />
         <ShowResultsButton
           canShow={shouldShowResultsButton}
           showResults={showResults}

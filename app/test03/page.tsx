@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
-import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
+import { GroupedQuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { averageGroups, cumulativeLengths, sortLabeledScores } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
@@ -167,19 +167,15 @@ export default function Home() {
           6 = 完璧に当てはまる
         </p>
 
-        {questions.map((question, index) => (
-          <div key={index}>
-            {cumLengths.includes(index) && <hr style={{ margin: '30px' }} />}
-            {cumLengths.includes(index) && <h2>{labels[cumLengths.indexOf(index)]}</h2>}
-            <h3>{question}</h3>
-            <ScoreButtons
-              options={[1, 2, 3, 4, 5, 6]}
-              selectedScore={scores[index]}
-              onSelect={(score) => handleAnswer(index, score)}
-              disabled={showResults}
-            />
-          </div>
-        ))}
+        <GroupedQuestionList
+          questions={questions}
+          scores={scores}
+          scoreOptions={[1, 2, 3, 4, 5, 6]}
+          onAnswer={handleAnswer}
+          disabled={showResults}
+          groupStarts={cumLengths}
+          groupLabels={labels}
+        />
         <ShowResultsButton
           canShow={shouldShowResultsButton}
           showResults={showResults}

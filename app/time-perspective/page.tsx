@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
-import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
+import { QuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { labels, questions, questionRows, reverseMax, scoreOptions } from '@/app/data/time-perspective';
 import { averageQuestionRowGroups, sortLabeledScores } from '@/app/lib/scoring';
@@ -110,17 +110,13 @@ export default function Home() {
           以下の質問に5点満点で点数をつけてください。まったくあてはまらないなら1点で、完全に当てはまるなら5点です。
         </p>
 
-        {questions.map((question, index) => (
-          <div key={index}>
-            <h3>{question}</h3>
-            <ScoreButtons
-              options={scoreOptions}
-              selectedScore={scores[index]}
-              onSelect={(score) => handleAnswer(index, score)}
-              disabled={showResults}
-            />
-          </div>
-        ))}
+        <QuestionList
+          questions={questions}
+          scores={scores}
+          scoreOptions={scoreOptions}
+          onAnswer={handleAnswer}
+          disabled={showResults}
+        />
         <ShowResultsButton
           canShow={shouldShowResultsButton}
           showResults={showResults}

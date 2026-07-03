@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
-import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
+import { QuestionList, ShowResultsButton } from '@/app/components/questionnaire';
+import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { questionsParadox, questionsTension, scoreOptions } from '@/app/data/paradox-mindset';
-import { allAnswered, average } from '@/app/lib/scoring';
+import { average } from '@/app/lib/scoring';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -39,28 +39,16 @@ ChartJS.register(
 );
 
 export default function Home() {
-  const [scoresTension, setScoresTension] = useState<number[]>(Array(questionsTension.length).fill(0));
-  const [scoresParadox, setScoresParadox] = useState<number[]>(Array(questionsParadox.length).fill(0));
-  const [showResults, setShowResults] = useState(false); // 結果を表示するための状態
-  // scoresTensionとscoresParadoxに0が含まれていないかチェック
-  const shouldShowResultsButton = allAnswered(scoresTension) && allAnswered(scoresParadox);
+  const tension = useQuestionnaire({ questionCount: questionsTension.length });
+  const paradox = useQuestionnaire({ questionCount: questionsParadox.length });
+  const showResults = tension.showResults || paradox.showResults;
+  const shouldShowResultsButton = tension.canShowResults && paradox.canShowResults;
 
-  const handleAnswerTension = (index: number, score: number) => {
-    const newScoresTension = [...scoresTension];
-    newScoresTension[index] = score;
-    setScoresTension(newScoresTension);
-  };
-  const handleAnswerParadox = (index: number, score: number) => {
-    const newScoresParadox = [...scoresParadox];
-    newScoresParadox[index] = score;
-    setScoresParadox(newScoresParadox);
-  };
-
-  const resultScoreTension = average(scoresTension)
-  const resultScoreParadox = average(scoresParadox)
+  const resultScoreTension = average(tension.scores)
+  const resultScoreParadox = average(paradox.scores)
   const handleShowResults = () => {
-    // 結果を表示するボタンをクリックしたら結果を表示
-    setShowResults(true);
+    tension.show();
+    paradox.show();
   };
 
   // グラフのデータ
@@ -209,30 +197,22 @@ export default function Home() {
         </p>
         <hr style={{ margin: '30px' }} />
         <h2>緊張関係（テンション）の経験</h2>
-        {questionsTension.map((question, index) => (
-          <div key={index}>
-            <h3>{question}</h3>
-            <ScoreButtons
-              options={scoreOptions}
-              selectedScore={scoresTension[index]}
-              onSelect={(score) => handleAnswerTension(index, score)}
-              disabled={showResults}
-            />
-          </div>
-        ))}
+        <QuestionList
+          questions={questionsTension}
+          scores={tension.scores}
+          scoreOptions={scoreOptions}
+          onAnswer={tension.answer}
+          disabled={showResults}
+        />
         <hr style={{ margin: '30px' }} />
         <h2>パラドックス・マインドセット</h2>
-        {questionsParadox.map((question, index) => (
-          <div key={index}>
-            <h3>{question}</h3>
-            <ScoreButtons
-              options={scoreOptions}
-              selectedScore={scoresParadox[index]}
-              onSelect={(score) => handleAnswerParadox(index, score)}
-              disabled={showResults}
-            />
-          </div>
-        ))}
+        <QuestionList
+          questions={questionsParadox}
+          scores={paradox.scores}
+          scoreOptions={scoreOptions}
+          onAnswer={paradox.answer}
+          disabled={showResults}
+        />
         <ShowResultsButton
           canShow={shouldShowResultsButton}
           showResults={showResults}
