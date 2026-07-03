@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
+import { allAnswered, averageGroups, cumulativeLengths, sortLabeledScores } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
 import {
   Chart as ChartJS,
@@ -289,13 +290,12 @@ const a_questions = [
 ];
 const questions = a_questions.flat();
 
-const lengths = a_questions.map((question) => question.length)
-const cumLengths = [0, ...lengths.map((sum => value => sum += value)(0))]
+const cumLengths = cumulativeLengths(a_questions);
 
 export default function Home() {
   const [scores, setScores] = useState<number[]>(Array(questions.length).fill(0));
   const [showResults, setShowResults] = useState(false); // 結果を表示するための状態
-  const shouldShowResultsButton = scores.every((score) => score !== 0); // scoresに0が含まれていないかチェック
+  const shouldShowResultsButton = allAnswered(scores); // scoresに0が含まれていないかチェック
   const [sortDescending, setSortDescending] = useState(false); // スコアの降順ソートトグル
 
   const handleAnswer = (index: number, score: number) => {
@@ -304,35 +304,10 @@ export default function Home() {
     setScores(newScores);
   };
 
-  const averageScores: number[] = [];
-  for (let i = 0; i < cumLengths.length - 1; i++) {
-    const start = cumLengths[i];
-    const end = cumLengths[i + 1];
-    const length = lengths[i];
-    const averageScore = scores.slice(start, end).reduce((acc, score) => acc + score, 0) / length;
-    averageScores.push(averageScore);
-  }
-  const pairLabelsAverageScores = labels.map((label, index) => [label, averageScores[index]]);
-  // 一旦オブジェクトに変換
-  const objLabelsAverageScores: { [key: string]: number } = Object.fromEntries(pairLabelsAverageScores);
-  // キーを含んだ配列に変換
-  const array = Object.keys(objLabelsAverageScores).map((k) => ({ key: k, value: objLabelsAverageScores[k] }));
-  // スコアの降順
-  array.sort((a, b) => b.value - a.value);
-  // オブジェクトに戻す
-  const sortedObjLabelsAverageScores = Object.assign({}, ...array.map((item) => ({
-    [item.key]: item.value,
-  })));
-  // スコアの降順のラベル
-  const sortedLabels = Object.keys(sortedObjLabelsAverageScores);
-  // スコアの降順のスコア
-  const sortedAverageScores = Object.values(sortedObjLabelsAverageScores);
-
-  const resultMessages: string[] = [];
-  for (let i = 0; i < cumLengths.length - 1; i++) {
-    const resultMessage = `${labels[i]}のスコア ${averageScores[i].toFixed(2)}`;
-    resultMessages.push(resultMessage);
-  }
+  const averageScores = averageGroups(scores, a_questions);
+  const sortedScores = sortLabeledScores(labels, averageScores, 'desc');
+  const sortedLabels = sortedScores.map((score) => score.label);
+  const sortedAverageScores = sortedScores.map((score) => score.value);
 
   const handleShowResults = () => {
     // 結果を表示するボタンをクリックしたら結果を表示

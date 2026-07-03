@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
+import { questionsParadox, questionsTension } from '@/app/data/paradox-mindset';
+import { allAnswered, average } from '@/app/lib/scoring';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -35,33 +37,12 @@ ChartJS.register(
   annotationPlugin,
 );
 
-const questionsTension = [
-  '時として、同時に現れたら矛盾しているように見える2つの考えを、心に抱くことがある',
-  '相反する要求の両方を同時に対処しなければならないことがよくある',
-  '相互に矛盾する目標を持つことがよくある',
-  '矛盾する要求の両方に応えなければいけない場面にたびたび遭遇する',
-  '私の仕事は緊張と矛盾に満ちている',
-  '対立する選択肢のどちらかに決めなければならないことがよくある',
-  '私の考える問題の解決策は、たいてい矛盾しているように見える',
-];
-const questionsParadox = [
-  '相いれない複数の視点を持った方が、物事をよく理解できると思う',
-  '相いれない要求に同時に応えることは苦にならない',
-  '矛盾を受け入れることは、私が成功するのに必要なことだ',
-  '矛盾したアイデアに遭遇することは、自身の活力になる',
-  '相互に矛盾する複数の目標をなんとかやり遂げようとしている時に楽しさを感じる',
-  '相いれない要求の両方を同時に受け入れることは、私自身よく経験している',
-  '相互に矛盾するような仕事に取り組むことに抵抗がない',
-  '相反する2つのことが両立できると感じると気分が高まる',
-  '矛盾する問題をなんとか対処できた時に活力を感じる',
-];
-
 export default function Home() {
   const [scoresTension, setScoresTension] = useState<number[]>(Array(questionsTension.length).fill(0));
   const [scoresParadox, setScoresParadox] = useState<number[]>(Array(questionsParadox.length).fill(0));
   const [showResults, setShowResults] = useState(false); // 結果を表示するための状態
   // scoresTensionとscoresParadoxに0が含まれていないかチェック
-  const shouldShowResultsButton = scoresTension.every((score) => score !== 0) && scoresParadox.every((score) => score !== 0);
+  const shouldShowResultsButton = allAnswered(scoresTension) && allAnswered(scoresParadox);
 
   const handleAnswerTension = (index: number, score: number) => {
     const newScoresTension = [...scoresTension];
@@ -74,28 +55,8 @@ export default function Home() {
     setScoresParadox(newScoresParadox);
   };
 
-  // 平均を計算する
-  const average = (numbers: number[]) => numbers.reduce(
-    (accumulator: number, currentValue: number) => accumulator + currentValue,
-    0
-  ) / numbers.length
   const resultScoreTension = average(scoresTension)
   const resultScoreParadox = average(scoresParadox)
-  const isTensionHigh = resultScoreTension > 4.38
-  const isParadoxHigh = resultScoreParadox > 4.9
-  const calcZone = (isTensionHigh: boolean, isParadoxHigh: boolean) => {
-    // 等号になることはない
-    if (isTensionHigh && isParadoxHigh) {
-      return "積極的実践（エンゲージング）ゾーン";
-    } else if (isTensionHigh && !isParadoxHigh) {
-      return "解決／解消ゾーン";
-    } else if (!isTensionHigh && isParadoxHigh) {
-      return "準備完了ゾーン";
-    } else {
-      return "回避／逃避ゾーン";
-    }
-  }
-  const zone = calcZone(isTensionHigh, isParadoxHigh)
   const handleShowResults = () => {
     // 結果を表示するボタンをクリックしたら結果を表示
     setShowResults(true);

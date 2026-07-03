@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
+import { labels, questions } from '@/app/data/tipi-j';
+import { allAnswered, scoreTerm } from '@/app/lib/scoring';
 import { Radar } from 'react-chartjs-2'; // react-chartjs-2をインポート
 import {
   Chart as ChartJS,
@@ -33,32 +35,10 @@ ChartJS.register(
   Legend
 );
 
-const labels = [
-  '外向性',
-  '協調性',
-  '勤勉性',
-  '神経症傾向',
-  '開放性',
-];
-
-const questions = [
-  '活発で、外向的だと思う',
-  '他人に不満をもち、もめごとを起こしやすいと思う',
-  'しっかりしていて、自分に厳しいと思う',
-  '心配性で、うろたえやすいと思う',
-  '新しいことが好きで、変わった考えをもつと思う',
-  'ひかえめで、おとなしいと思う',
-  '人に気をつかう、やさしい人間だと思う',
-  'だらしなく、うっかりしていると思う',
-  '冷静で、気分が安定していると思う',
-  '発想力に欠けた、平凡な人間だと思う',
-];
-
 export default function Home() {
   const [scores, setScores] = useState<number[]>(Array(questions.length).fill(0));
   const [showResults, setShowResults] = useState(false); // 結果を表示するための状態
-  const shouldShowResultsButton = scores.every((score) => score !== 0); // scoresに0が含まれていないかチェック
-  const [sortDescending, setSortDescending] = useState(false); // スコアの降順ソートトグル
+  const shouldShowResultsButton = allAnswered(scores); // scoresに0が含まれていないかチェック
 
   const handleAnswer = (index: number, score: number) => {
     const newScores = [...scores];
@@ -67,18 +47,12 @@ export default function Home() {
   };
 
   const resultScores: number[] = [
-    scores[0] + 8 - scores[5],
-    8 - scores[1] + scores[6],
-    scores[2] + 8 - scores[7],
-    scores[3] + 8 - scores[8],
-    scores[4] + 8 - scores[9],
+    scoreTerm(scores, 1) + scoreTerm(scores, { item: 6, reverseMax: 8 }),
+    scoreTerm(scores, { item: 2, reverseMax: 8 }) + scoreTerm(scores, 7),
+    scoreTerm(scores, 3) + scoreTerm(scores, { item: 8, reverseMax: 8 }),
+    scoreTerm(scores, 4) + scoreTerm(scores, { item: 9, reverseMax: 8 }),
+    scoreTerm(scores, 5) + scoreTerm(scores, { item: 10, reverseMax: 8 }),
   ];
-
-  const resultMessages: string[] = [];
-  for (let i = 0; i < 5; i++) {
-    const resultMessage = `${labels[i]}のスコア ${resultScores[i]}`;
-    resultMessages.push(resultMessage);
-  }
 
   const handleShowResults = () => {
     // 結果を表示するボタンをクリックしたら結果を表示
@@ -206,7 +180,6 @@ export default function Home() {
             </div>
             {labels.map((label, index) => (
               <div key={label}>
-                {/* <p>{resultMessages[index]}</p> */}
                 <p>{label}: {resultScores[index]}</p>
               </div>
             ))}

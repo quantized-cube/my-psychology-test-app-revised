@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
+import { allAnswered, sum } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
 import {
   Chart as ChartJS,
@@ -34,7 +35,7 @@ const questions = [
 export default function Home() {
   const [scores, setScores] = useState<number[]>(Array(questions.length).fill(0));
   const [showResults, setShowResults] = useState(false); // 結果を表示するための状態
-  const shouldShowResultsButton = scores.every((score) => score !== 0); // scoresに0が含まれていないかチェック
+  const shouldShowResultsButton = allAnswered(scores); // scoresに0が含まれていないかチェック
 
   const handleAnswer = (index: number, score: number) => {
     const newScores = [...scores];
@@ -43,8 +44,8 @@ export default function Home() {
   };
 
   // const totalScore = scores.reduce((acc, score) => acc + score, 0);
-  const totalScore_1 = scores.slice(0, 2).reduce((acc, score) => acc + score, 0);
-  const totalScore_2 = scores.slice(2, 4).reduce((acc, score) => acc + score, 0);
+  const totalScore_1 = sum(scores.slice(0, 2));
+  const totalScore_2 = sum(scores.slice(2, 4));
   // const resultMessage = `合計スコア ${totalScore}`;
   const resultMessage1 = `1と2の合計スコア ${totalScore_1}`;
   const resultMessage2 = `3と4の合計スコア ${totalScore_2}`;

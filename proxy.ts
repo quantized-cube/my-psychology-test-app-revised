@@ -7,7 +7,7 @@ export const config = {
   ],
 };
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const basicAuth = req.headers.get('authorization');
   const url = req.nextUrl;
 
@@ -32,7 +32,7 @@ export function middleware(req: NextRequest) {
   return new NextResponse('Auth required', {
     status: 401,
     headers: {
-      'WWW-Authenticate': 'Basic realm="Secure Area"'
-    }
+      'WWW-Authenticate': 'Basic realm="Secure Area"',
+    },
   });
 }
