@@ -6,37 +6,7 @@ import Link from 'next/link'
 import { QuestionList, ShowResultsButton, ToggleButton } from '@/app/components/questionnaire';
 import { labels, questions, scoreOptions } from '@/app/data/career-anchors';
 import { addScores, allAnswered, sortLabeledScores, sum } from '@/app/lib/scoring';
-import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PolarAreaController,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PolarAreaController,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-
+import { Bar, barChartData, horizontalBarOptions } from '@/app/components/charts';
 
 export default function Home() {
   const [scores, setScores] = useState<number[]>(Array(questions.length).fill(0));
@@ -81,53 +51,16 @@ export default function Home() {
     setSortDescending(!sortDescending);
   };
 
-  // 棒グラフのデータ
-  const options = {
-    indexAxis: 'y' as const,
-    elements: {
-      bar: {
-        borderWidth: 5,
-      },
-    },
-    maintainAspectRatio: false,
-    responsive: true,
-    scales: {
-      x: {
-        min: 0,
-        max: 9,
-        ticks: {
-          stepSize: 1,
-        },
-        grid: {
-          lineWidth: 2,
-        },
-      }
-    },
-    plugins: {
-      legend: {
-        // position: 'right' as const,
-        display: false,
-      },
-      title: {
-        display: true,
-        text: 'あなたのキャリア・アンカー',
-      },
-    },
-  };
-  const barChartData = {
+  const options = horizontalBarOptions({
+    title: 'あなたのキャリア・アンカー',
+    xMax: 9,
+    xStepSize: 1,
+    xGridLineWidth: 2,
+  });
+  const chartData = barChartData({
     labels: sortDescending ? sortedLabels : labels,
-    datasets: [
-      {
-        label: 'スコア',
-        data: sortDescending ? sortedResultScores : resultScores,
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.4)',
-        borderWidth: 3,
-        hoverBackgroundColor: 'rgba(80, 200, 200, 0.8)',
-        hoverBorderColor: 'rgba(75, 192, 192, 1)',
-      },
-    ],
-  };
+    data: sortDescending ? sortedResultScores : resultScores,
+  });
 
   return (
     <div>
@@ -201,7 +134,7 @@ export default function Home() {
             <button onClick={handleToggleSort}>{sortDescending ? 'デフォルト順に並べ替え' : '降順に並べ替え'}</button>
             <div className="mx-auto max-w-min">
               <Bar // 棒グラフを表示
-                data={barChartData}
+                data={chartData}
                 height={350}
                 options={options}
               />

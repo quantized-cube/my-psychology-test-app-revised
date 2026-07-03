@@ -6,35 +6,7 @@ import { QuestionList, ShowResultsButton } from '@/app/components/questionnaire'
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { labels, questions, questionRows, reverseMax, scoreOptions } from '@/app/data/tipi-j';
 import { sumQuestionRowGroups } from '@/app/lib/scoring';
-import { Radar } from 'react-chartjs-2'; // react-chartjs-2をインポート
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PolarAreaController,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PolarAreaController,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import { Radar } from '@/app/components/charts';
 
 export default function Home() {
   const {

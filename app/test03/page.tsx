@@ -6,25 +6,7 @@ import Link from 'next/link'
 import { GroupedQuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { averageGroups, cumulativeLengths, sortLabeledScores } from '@/app/lib/scoring';
-import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import { Bar, barChartData, horizontalBarOptions } from '@/app/components/charts';
 
 const labels = [
   'ED',
@@ -88,66 +70,22 @@ export default function Home() {
     setSortDescending(!sortDescending);
   };
 
-  // 棒グラフのデータ
-  const options = {
-    indexAxis: 'y' as const,
-    elements: {
-      bar: {
-        borderWidth: 5,
-      },
-    },
-    maintainAspectRatio: false,
-    responsive: true,
-    scales: {
-      x: {
-        min: 0,
-        max: 7,
-        ticks: {
-          stepSize: 1,
-        },
-      }
-    },
-    plugins: {
-      legend: {
-        // position: 'right' as const,
-        display: false,
-      },
-      title: {
-        display: true,
-        text: '結果のグラフ',
-      },
-    },
-  };
-  const barChartData = {
+  const displayedScores = sortDescending ? sortedAverageScores : averageScores;
+  const options = horizontalBarOptions({
+    title: '結果のグラフ',
+    xMax: 7,
+    xStepSize: 1,
+  });
+  const chartData = barChartData({
     labels: sortDescending ? sortedLabels : labels,
-    datasets: [
-      {
-        label: 'スコア',
-        data: sortDescending ? sortedAverageScores : averageScores,
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: (context: any) => {
-          // context.dataIndex は各バーのインデックスを表します
-          const score: any = sortDescending
-            ? sortedAverageScores[context.dataIndex]
-            : averageScores[context.dataIndex];
-
-          // スコアが4以上の場合に色を変える
-          return score >= 4 ? 'rgba(200, 55, 80, 0.8)' : 'rgba(255, 99, 132, 0.4)';
-        },
-        borderWidth: 3,
-        hoverBackgroundColor: (context: any) => {
-          // context.dataIndex は各バーのインデックスを表します
-          const score: any = sortDescending
-            ? sortedAverageScores[context.dataIndex]
-            : averageScores[context.dataIndex];
-
-          // スコアが4以上の場合に色を変える
-          return score >= 4 ? 'rgba(60, 150, 150, 0.8)' : 'rgba(80, 200, 200, 0.8)';
-        },
-        hoverBorderColor: 'rgba(75, 192, 192, 1)',
-      },
-    ],
-  };
+    data: displayedScores,
+    backgroundColor: (context: any) => (
+      displayedScores[context.dataIndex] >= 4 ? 'rgba(200, 55, 80, 0.8)' : 'rgba(255, 99, 132, 0.4)'
+    ),
+    hoverBackgroundColor: (context: any) => (
+      displayedScores[context.dataIndex] >= 4 ? 'rgba(60, 150, 150, 0.8)' : 'rgba(80, 200, 200, 0.8)'
+    ),
+  });
 
   return (
     <div>
@@ -187,7 +125,7 @@ export default function Home() {
             <button onClick={handleToggleSort}>{sortDescending ? '質問順に並べ替え' : '降順に並べ替え'}</button>
             <div className="mx-auto max-w-min">
               <Bar // 棒グラフを表示
-                data={barChartData}
+                data={chartData}
                 // width={600}
                 height={150}
                 options={options}

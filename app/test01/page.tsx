@@ -5,25 +5,7 @@ import Link from 'next/link'
 import { QuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { sum } from '@/app/lib/scoring';
-import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import { Bar, barChartData, horizontalBarOptions } from '@/app/components/charts';
 
 
 const questions = [
@@ -49,51 +31,18 @@ export default function Home() {
   const resultMessage1 = `1と2の合計スコア ${totalScore_1}`;
   const resultMessage2 = `3と4の合計スコア ${totalScore_2}`;
 
-  // 棒グラフのデータ
-  const options = {
-    indexAxis: 'y' as const,
-    elements: {
-      bar: {
-        borderWidth: 5,
-      },
-    },
-    maintainAspectRatio: false,
-    responsive: true,
-    scales: {
-      x: {
-        min: 0,
-        max: 12,
-        ticks: {
-          stepSize: 3,
-        },
-      }
-    },
-    plugins: {
-      legend: {
-        // position: 'right' as const,
-        display: false,
-      },
-      title: {
-        display: true,
-        text: '結果のグラフ',
-      },
-    },
-  };
+  const options = horizontalBarOptions({
+    title: '結果のグラフ',
+    xMax: 12,
+    xStepSize: 3,
+  });
   const labels = ['結果1', '結果2'];
-  const barChartData = {
-    labels: labels, // カテゴリーデータを設定
-    datasets: [
-      {
-        label: 'スコア',
-        data: [totalScore_1, totalScore_2],
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-        borderWidth: 3,
-        hoverBackgroundColor: 'rgba(75, 192, 192, 0.8)',
-        hoverBorderColor: 'rgba(75, 192, 192, 1)',
-      },
-    ],
-  };
+  const chartData = barChartData({
+    labels,
+    data: [totalScore_1, totalScore_2],
+    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+    hoverBackgroundColor: 'rgba(75, 192, 192, 0.8)',
+  });
 
   return (
     <div>
@@ -123,7 +72,7 @@ export default function Home() {
             <h2>結果</h2>
             <div className="mx-auto max-w-min">
               <Bar // 棒グラフを表示
-                data={barChartData}
+                data={chartData}
                 // width={600}
                 height={150}
                 options={options}

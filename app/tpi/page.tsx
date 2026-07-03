@@ -7,27 +7,7 @@ import { QuestionList, ShowResultsButton } from '@/app/components/questionnaire'
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { labels, questions, questionRows, reverseMax, scoreOptions } from '@/app/data/tpi';
 import { averageQuestionRowGroups, sortLabeledScores } from '@/app/lib/scoring';
-import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-
+import { Bar, barChartData, horizontalBarOptions } from '@/app/components/charts';
 
 export default function Home() {
   const {
@@ -49,53 +29,16 @@ export default function Home() {
     setSortDescending(!sortDescending);
   };
 
-  // 棒グラフのデータ
-  const options = {
-    indexAxis: 'y' as const,
-    elements: {
-      bar: {
-        borderWidth: 5,
-      },
-    },
-    maintainAspectRatio: false,
-    responsive: true,
-    scales: {
-      x: {
-        min: 0,
-        max: 6,
-        ticks: {
-          stepSize: 1,
-        },
-        grid: {
-          lineWidth: 2,
-        },
-      }
-    },
-    plugins: {
-      legend: {
-        // position: 'right' as const,
-        display: false,
-      },
-      title: {
-        display: true,
-        text: 'あなたの時間志向',
-      },
-    },
-  };
-  const barChartData = {
+  const options = horizontalBarOptions({
+    title: 'あなたの時間志向',
+    xMax: 6,
+    xStepSize: 1,
+    xGridLineWidth: 2,
+  });
+  const chartData = barChartData({
     labels: sortDescending ? sortedLabels : labels,
-    datasets: [
-      {
-        label: 'スコア',
-        data: sortDescending ? sortedAverageScores : averageScores,
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.4)',
-        borderWidth: 3,
-        hoverBackgroundColor: 'rgba(80, 200, 200, 0.8)',
-        hoverBorderColor: 'rgba(75, 192, 192, 1)',
-      },
-    ],
-  };
+    data: sortDescending ? sortedAverageScores : averageScores,
+  });
 
   return (
     <div>
@@ -135,7 +78,7 @@ export default function Home() {
             <button onClick={handleToggleSort}>{sortDescending ? 'デフォルト順に並べ替え' : '降順に並べ替え'}</button>
             <div className="mx-auto max-w-min">
               <Bar // 棒グラフを表示
-                data={barChartData}
+                data={chartData}
                 height={350}
                 options={options}
               />

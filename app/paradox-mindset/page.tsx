@@ -6,37 +6,7 @@ import { QuestionList, ShowResultsButton } from '@/app/components/questionnaire'
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { questionsParadox, questionsTension, scoreOptions } from '@/app/data/paradox-mindset';
 import { average } from '@/app/lib/scoring';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PolarAreaController,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Scatter } from 'react-chartjs-2';
-import annotationPlugin from 'chartjs-plugin-annotation';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PolarAreaController,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  annotationPlugin,
-);
+import { Scatter } from '@/app/components/charts';
 
 export default function Home() {
   const tension = useQuestionnaire({ questionCount: questionsTension.length });
