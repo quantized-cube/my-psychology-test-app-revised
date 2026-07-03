@@ -4,7 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link'
 import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
-import { interpretations, questions, reverseItems } from '@/app/data/nfc';
+import { interpretations, questions, reverseItems, scoreOptions } from '@/app/data/nfc';
 import { adjustedScores, scoreByInterpretation, sum } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -132,7 +132,7 @@ export default function NatureConnectedness() {
               {question}
             </h3>
             <ScoreButtons
-              options={[1, 2, 3, 4, 5, 6]}
+              options={scoreOptions}
               selectedScore={scores[index]}
               onSelect={(score) => handleAnswer(index, score)}
               disabled={showResults}

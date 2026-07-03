@@ -10,6 +10,12 @@ export type LabeledScore = {
   value: number;
 };
 
+export type ScoredQuestionRow = {
+  id: number;
+  group: string;
+  reverse: boolean;
+};
+
 export function allAnswered(scores: number[]) {
   return scores.every((score) => score !== 0);
 }
@@ -67,6 +73,38 @@ export function averageGroups(scores: number[], groups: readonly unknown[][]) {
   return sumGroups(scores, groups).map((score, index) => (
     groups[index].length === 0 ? 0 : score / groups[index].length
   ));
+}
+
+export function averageQuestionRowGroups(
+  scores: number[],
+  rows: readonly ScoredQuestionRow[],
+  labels: readonly string[],
+  reverseMax: number,
+) {
+  return labels.map((label) => {
+    const groupScores = rows
+      .filter((row) => row.group === label)
+      .map((row) => {
+        const score = scores[row.id - 1];
+        return row.reverse ? reverseScore(score, reverseMax) : score;
+      });
+
+    return average(groupScores);
+  });
+}
+
+export function sumQuestionRowGroups(
+  scores: number[],
+  rows: readonly ScoredQuestionRow[],
+  labels: readonly string[],
+  reverseMax: number,
+) {
+  return labels.map((label) => sum(rows
+    .filter((row) => row.group === label)
+    .map((row) => {
+      const score = scores[row.id - 1];
+      return row.reverse ? reverseScore(score, reverseMax) : score;
+    })));
 }
 
 export function labelScores(labels: readonly string[], scores: readonly number[]): LabeledScore[] {

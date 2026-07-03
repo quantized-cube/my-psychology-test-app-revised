@@ -28,6 +28,27 @@ npm run lint
 npm run build
 ```
 
+## Question Data
+
+Question text is managed in TSV files under `app/data/tsv`.
+
+Do not edit files under `app/data/generated` directly. They are generated from
+the TSV sources by:
+
+```bash
+npm run generate:data
+```
+
+`npm run dev`, `npm run lint`, and `npm run build` run this generation step
+automatically.
+
+TSV columns:
+
+- `id`: sequential question number
+- `group`: optional scale or group label
+- `text`: question text
+- `reverse`: `1` for reverse-scored items, otherwise `0`
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
