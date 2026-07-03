@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
+import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
 import { questionsParadox, questionsTension } from '@/app/data/paradox-mindset';
 import { allAnswered, average } from '@/app/lib/scoring';
 import {
@@ -211,16 +212,12 @@ export default function Home() {
         {questionsTension.map((question, index) => (
           <div key={index}>
             <h3>{question}</h3>
-            {[1, 2, 3, 4, 5, 6, 7].map((score) => (
-              <button
-                key={score}
-                onClick={() => handleAnswerTension(index, score)}
-                className={scoresTension[index] === score ? 'selected' : ''}
-                disabled={showResults} // 結果表示中はボタンを無効化
-              >
-                {score}
-              </button>
-            ))}
+            <ScoreButtons
+              options={[1, 2, 3, 4, 5, 6, 7]}
+              selectedScore={scoresTension[index]}
+              onSelect={(score) => handleAnswerTension(index, score)}
+              disabled={showResults}
+            />
           </div>
         ))}
         <hr style={{ margin: '30px' }} />
@@ -228,24 +225,19 @@ export default function Home() {
         {questionsParadox.map((question, index) => (
           <div key={index}>
             <h3>{question}</h3>
-            {[1, 2, 3, 4, 5, 6, 7].map((score) => (
-              <button
-                key={score}
-                onClick={() => handleAnswerParadox(index, score)}
-                className={scoresParadox[index] === score ? 'selected' : ''}
-                disabled={showResults} // 結果表示中はボタンを無効化
-              >
-                {score}
-              </button>
-            ))}
+            <ScoreButtons
+              options={[1, 2, 3, 4, 5, 6, 7]}
+              selectedScore={scoresParadox[index]}
+              onSelect={(score) => handleAnswerParadox(index, score)}
+              disabled={showResults}
+            />
           </div>
         ))}
-        {shouldShowResultsButton && <hr style={{ margin: '30px' }} />}
-        {shouldShowResultsButton && !showResults && (
-          <div style={{ marginTop: '30px' }}>
-            <button onClick={handleShowResults}>結果を表示</button>
-          </div>
-        )}
+        <ShowResultsButton
+          canShow={shouldShowResultsButton}
+          showResults={showResults}
+          onShow={handleShowResults}
+        />
         {showResults && ( // 結果を表示する場合に表示
           <div>
             <h2>結果</h2>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
+import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
 import { allAnswered, sum } from '@/app/lib/scoring';
 
 const questions = [
@@ -47,23 +48,19 @@ export default function Home() {
         {questions.map((question, index) => (
           <div key={index}>
             <h2>{question}</h2>
-            {[1, 2, 3, 4, 5, 6].map((score) => (
-              <button
-                key={score}
-                onClick={() => handleAnswer(index, score)}
-                className={scores[index] === score ? 'selected' : ''}
-              // disabled={showResults} // 結果表示中はボタンを無効化
-              >
-                {score}
-              </button>
-            ))}
+            <ScoreButtons
+              options={[1, 2, 3, 4, 5, 6]}
+              selectedScore={scores[index]}
+              onSelect={(score) => handleAnswer(index, score)}
+            />
           </div>
         ))}
-        {shouldShowResultsButton && !showResults && (
-          <div style={{ marginTop: '30px' }}>
-            <button onClick={handleShowResults}>結果を表示</button>
-          </div>
-        )}
+        <ShowResultsButton
+          canShow={shouldShowResultsButton}
+          showResults={showResults}
+          onShow={handleShowResults}
+          withDivider={false}
+        />
         {showResults && ( // 結果を表示する場合に表示
           <div>
             <hr style={{ margin: '30px' }} />

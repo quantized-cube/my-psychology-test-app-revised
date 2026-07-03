@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
+import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
 import { interpretations, questions, reverseItems } from '@/app/data/nature-connectedness';
 import { adjustedScores, allAnswered, average, scoreByInterpretation } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2';
@@ -126,25 +127,20 @@ export default function NatureConnectedness() {
             <h3>
               {question}
             </h3>
-            {[1, 2, 3, 4, 5].map((score) => (
-              <button
-                key={score}
-                onClick={() => handleAnswer(index, score)}
-                className={scores[index] === score ? 'selected' : ''}
-                disabled={showResults}
-              >
-                {score}
-              </button>
-            ))}
+            <ScoreButtons
+              options={[1, 2, 3, 4, 5]}
+              selectedScore={scores[index]}
+              onSelect={(score) => handleAnswer(index, score)}
+              disabled={showResults}
+            />
           </div>
         ))}
 
-        {shouldShowResultsButton && <hr style={{ margin: '30px' }} />}
-        {shouldShowResultsButton && !showResults && (
-          <div style={{ marginTop: '30px' }}>
-            <button onClick={handleShowResults}>結果を表示</button>
-          </div>
-        )}
+        <ShowResultsButton
+          canShow={shouldShowResultsButton}
+          showResults={showResults}
+          onShow={handleShowResults}
+        />
 
         {showResults && (
           <div>

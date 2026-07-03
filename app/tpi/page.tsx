@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
+import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
 import { labels, questions, scoreScales } from '@/app/data/tpi';
 import { allAnswered, averageTerms, sortLabeledScores } from '@/app/lib/scoring';
 import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
@@ -125,24 +126,19 @@ export default function Home() {
         {questions.map((question, index) => (
           <div key={index}>
             <h3>{question}</h3>
-            {[1, 2, 3, 4, 5].map((score) => (
-              <button
-                key={score}
-                onClick={() => handleAnswer(index, score)}
-                className={scores[index] === score ? 'selected' : ''}
-                disabled={showResults} // 結果表示中はボタンを無効化
-              >
-                {score}
-              </button>
-            ))}
+            <ScoreButtons
+              options={[1, 2, 3, 4, 5]}
+              selectedScore={scores[index]}
+              onSelect={(score) => handleAnswer(index, score)}
+              disabled={showResults}
+            />
           </div>
         ))}
-        {shouldShowResultsButton && <hr style={{ margin: '30px' }} />}
-        {shouldShowResultsButton && !showResults && (
-          <div style={{ marginTop: '30px' }}>
-            <button onClick={handleShowResults}>結果を表示</button>
-          </div>
-        )}
+        <ShowResultsButton
+          canShow={shouldShowResultsButton}
+          showResults={showResults}
+          onShow={handleShowResults}
+        />
         {showResults && ( // 結果を表示する場合に表示
           <div>
             <h2>結果</h2>
