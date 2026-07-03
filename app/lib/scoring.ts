@@ -93,6 +93,20 @@ export function averageQuestionRowGroups(
   });
 }
 
+export function sumQuestionRowGroups(
+  scores: number[],
+  rows: readonly ScoredQuestionRow[],
+  labels: readonly string[],
+  reverseMax: number,
+) {
+  return labels.map((label) => sum(rows
+    .filter((row) => row.group === label)
+    .map((row) => {
+      const score = scores[row.id - 1];
+      return row.reverse ? reverseScore(score, reverseMax) : score;
+    })));
+}
+
 export function labelScores(labels: readonly string[], scores: readonly number[]): LabeledScore[] {
   return labels.map((label, index) => ({
     label,

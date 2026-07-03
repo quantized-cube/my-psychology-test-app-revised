@@ -4,8 +4,8 @@ import Head from 'next/head';
 import Link from 'next/link'
 import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
-import { labels, questions } from '@/app/data/tipi-j';
-import { scoreTerm } from '@/app/lib/scoring';
+import { labels, questions, questionRows, reverseMax } from '@/app/data/tipi-j';
+import { sumQuestionRowGroups } from '@/app/lib/scoring';
 import { Radar } from 'react-chartjs-2'; // react-chartjs-2をインポート
 import {
   Chart as ChartJS,
@@ -45,13 +45,7 @@ export default function Home() {
     show: handleShowResults,
   } = useQuestionnaire({ questionCount: questions.length });
 
-  const resultScores: number[] = [
-    scoreTerm(scores, 1) + scoreTerm(scores, { item: 6, reverseMax: 8 }),
-    scoreTerm(scores, { item: 2, reverseMax: 8 }) + scoreTerm(scores, 7),
-    scoreTerm(scores, 3) + scoreTerm(scores, { item: 8, reverseMax: 8 }),
-    scoreTerm(scores, 4) + scoreTerm(scores, { item: 9, reverseMax: 8 }),
-    scoreTerm(scores, 5) + scoreTerm(scores, { item: 10, reverseMax: 8 }),
-  ];
+  const resultScores = sumQuestionRowGroups(scores, questionRows, labels, reverseMax);
 
   // 棒グラフのデータ
   const options = {

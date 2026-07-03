@@ -6,4 +6,6 @@ export const labels = [
   '開放性',
 ];
 
-export { questions } from './generated/tipi-j';
+export const reverseMax = 8;
+
+export { questionRows, questions } from './generated/tipi-j';
