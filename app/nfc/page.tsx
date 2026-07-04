@@ -98,7 +98,7 @@ export default function NatureConnectedness() {
         />
 
         {showResults && (
-          <div>
+          <div id="results" tabIndex={-1}>
             <h2>診断結果</h2>
             
             <BarChart data={chartData} height={350} options={chartOptions} />

@@ -1,9 +1,12 @@
-import type { ReactNode } from 'react';
+import { useId } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 
 type ScoreButtonsProps = {
+  idPrefix: string;
   options: readonly number[];
   selectedScore: number;
   disabled?: boolean;
+  questionIndex: number;
   onSelect: (score: number) => void;
 };
 
@@ -22,6 +25,7 @@ type ShowResultsButtonProps = {
 };
 
 type QuestionListProps = {
+  idPrefix?: string;
   questions: readonly string[];
   scores: readonly number[];
   scoreOptions: readonly number[];
@@ -38,19 +42,61 @@ type GroupedQuestionListProps = Omit<QuestionListProps, 'renderBeforeQuestion'> 
 };
 
 export function ScoreButtons({
+  idPrefix,
   options,
   selectedScore,
   disabled = false,
+  questionIndex,
   onSelect,
 }: ScoreButtonsProps) {
+  const focusScoreButton = (score: number) => {
+    window.setTimeout(() => {
+      document
+        .getElementById(`${idPrefix}-question-${questionIndex + 1}-score-${score}`)
+        ?.focus();
+    }, 0);
+  };
+
+  const handleKeyDown = (
+    event: KeyboardEvent<HTMLButtonElement>,
+    optionIndex: number,
+  ) => {
+    const keyToIndex: Record<string, number> = {
+      ArrowDown: (optionIndex + 1) % options.length,
+      ArrowRight: (optionIndex + 1) % options.length,
+      ArrowUp: (optionIndex - 1 + options.length) % options.length,
+      ArrowLeft: (optionIndex - 1 + options.length) % options.length,
+      Home: 0,
+      End: options.length - 1,
+    };
+
+    const nextIndex = keyToIndex[event.key];
+
+    if (nextIndex === undefined) {
+      return;
+    }
+
+    event.preventDefault();
+    const nextScore = options[nextIndex];
+    onSelect(nextScore);
+    focusScoreButton(nextScore);
+  };
+
   return (
     <>
-      {options.map((score) => (
+      {options.map((score, optionIndex) => (
         <button
           key={score}
+          id={`${idPrefix}-question-${questionIndex + 1}-score-${score}`}
+          type="button"
           onClick={() => onSelect(score)}
-          className={selectedScore === score ? 'selected' : ''}
+          onKeyDown={(event) => handleKeyDown(event, optionIndex)}
+          className={`score-button${selectedScore === score ? ' selected' : ''}`}
           disabled={disabled}
+          role="radio"
+          aria-checked={selectedScore === score}
+          aria-label={`${questionIndex + 1}問目: ${score}`}
+          tabIndex={selectedScore === score || (selectedScore === 0 && optionIndex === 0) ? 0 : -1}
         >
           {score}
         </button>
@@ -60,16 +106,19 @@ export function ScoreButtons({
 }
 
 function QuestionHeading({
+  id,
   level,
   children,
 }: {
+  id?: string;
   level: 2 | 3;
   children: ReactNode;
 }) {
-  return level === 2 ? <h2>{children}</h2> : <h3>{children}</h3>;
+  return level === 2 ? <h2 id={id}>{children}</h2> : <h3 id={id}>{children}</h3>;
 }
 
 export function QuestionList({
+  idPrefix,
   questions,
   scores,
   scoreOptions,
@@ -79,24 +128,80 @@ export function QuestionList({
   renderBeforeQuestion,
   renderAfterScoreButtons,
 }: QuestionListProps) {
+  const reactId = useId().replace(/:/g, '');
+  const uniqueIdPrefix = idPrefix ?? `questionnaire-${reactId}`;
+  const answeredCount = scores.filter((score) => score !== 0).length;
+  const firstUnansweredIndex = scores.findIndex((score) => score === 0);
+  const hasUnanswered = firstUnansweredIndex !== -1;
+  const questionCount = questions.length;
+
+  const handleJumpToUnanswered = () => {
+    if (!hasUnanswered || typeof document === 'undefined') {
+      return;
+    }
+
+    const unansweredQuestionId = `${uniqueIdPrefix}-question-${firstUnansweredIndex + 1}`;
+    const firstScoreButtonId = `${unansweredQuestionId}-score-${scoreOptions[0]}`;
+
+    document
+      .getElementById(unansweredQuestionId)
+      ?.scrollIntoView({
+        behavior: getScrollBehavior(),
+        block: 'center',
+      });
+    window.setTimeout(() => {
+      document.getElementById(firstScoreButtonId)?.focus();
+    }, 0);
+  };
+
   return (
-    <>
+    <div className="questionnaire-list">
+      <div className="questionnaire-progress" aria-live="polite">
+        <span>
+          回答済み {answeredCount} / {questionCount}
+        </span>
+        {!disabled && hasUnanswered && (
+          <button
+            type="button"
+            className="command-button"
+            onClick={handleJumpToUnanswered}
+          >
+            未回答へ移動
+          </button>
+        )}
+      </div>
       {questions.map((question, index) => (
-        <div key={index}>
+        <section
+          key={index}
+          id={`${uniqueIdPrefix}-question-${index + 1}`}
+          className="question-item"
+        >
           {renderBeforeQuestion?.(index)}
-          <QuestionHeading level={questionHeadingLevel}>
+          <QuestionHeading
+            id={`${uniqueIdPrefix}-question-${index + 1}-label`}
+            level={questionHeadingLevel}
+          >
+            {index + 1}.{' '}
             {question}
           </QuestionHeading>
-          <ScoreButtons
-            options={scoreOptions}
-            selectedScore={scores[index]}
-            onSelect={(score) => onAnswer(index, score)}
-            disabled={disabled}
-          />
+          <div
+            className="score-button-group"
+            role="radiogroup"
+            aria-labelledby={`${uniqueIdPrefix}-question-${index + 1}-label`}
+          >
+            <ScoreButtons
+              idPrefix={uniqueIdPrefix}
+              options={scoreOptions}
+              selectedScore={scores[index]}
+              questionIndex={index}
+              onSelect={(score) => onAnswer(index, score)}
+              disabled={disabled}
+            />
+          </div>
           {renderAfterScoreButtons?.(index)}
-        </div>
+        </section>
       ))}
-    </>
+    </div>
   );
 }
 
@@ -134,9 +239,11 @@ export function ToggleButton({
 }: ToggleButtonProps) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={selected ? 'selected' : ''}
+      className={`toggle-button${selected ? ' selected' : ''}`}
       disabled={disabled}
+      aria-pressed={selected}
     >
       {label}
     </button>
@@ -149,6 +256,18 @@ export function ShowResultsButton({
   onShow,
   withDivider = true,
 }: ShowResultsButtonProps) {
+  const handleShow = () => {
+    onShow();
+    window.setTimeout(() => {
+      const results = document.getElementById('results');
+      results?.scrollIntoView({
+        behavior: getScrollBehavior(),
+        block: 'start',
+      });
+      results?.focus({ preventScroll: true });
+    }, 0);
+  };
+
   if (!canShow) {
     return null;
   }
@@ -157,10 +276,27 @@ export function ShowResultsButton({
     <>
       {withDivider && <hr style={{ margin: '30px' }} />}
       {!showResults && (
-        <div style={{ marginTop: '30px' }}>
-          <button onClick={onShow}>結果を表示</button>
+        <div className="show-results">
+          <button
+            type="button"
+            className="command-button primary"
+            onClick={handleShow}
+          >
+            結果を表示
+          </button>
         </div>
       )}
     </>
   );
+}
+
+function getScrollBehavior(): ScrollBehavior {
+  if (
+    typeof window !== 'undefined'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    return 'auto';
+  }
+
+  return 'smooth';
 }

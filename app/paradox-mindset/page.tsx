@@ -189,7 +189,7 @@ export default function Home() {
           onShow={handleShowResults}
         />
         {showResults && ( // 結果を表示する場合に表示
-          <div>
+          <div id="results" tabIndex={-1}>
             <h2>結果</h2>
             <div className="mx-auto max-w-min">
               <Scatter
