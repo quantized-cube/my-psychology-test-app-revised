@@ -52,7 +52,7 @@ export default function Home() {
           withDivider={false}
         />
         {showResults && ( // 結果を表示する場合に表示
-          <div>
+          <div id="results" tabIndex={-1}>
             <hr style={{ margin: '30px' }} />
             <h2>結果</h2>
             <p>テスト結果：{resultMessage}</p>

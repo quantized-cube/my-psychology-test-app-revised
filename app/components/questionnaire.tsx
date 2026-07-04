@@ -4,6 +4,7 @@ type ScoreButtonsProps = {
   options: readonly number[];
   selectedScore: number;
   disabled?: boolean;
+  questionIndex: number;
   onSelect: (score: number) => void;
 };
 
@@ -41,6 +42,7 @@ export function ScoreButtons({
   options,
   selectedScore,
   disabled = false,
+  questionIndex,
   onSelect,
 }: ScoreButtonsProps) {
   return (
@@ -48,9 +50,13 @@ export function ScoreButtons({
       {options.map((score) => (
         <button
           key={score}
+          type="button"
           onClick={() => onSelect(score)}
-          className={selectedScore === score ? 'selected' : ''}
+          className={`score-button${selectedScore === score ? ' selected' : ''}`}
           disabled={disabled}
+          role="radio"
+          aria-checked={selectedScore === score}
+          aria-label={`${questionIndex + 1}問目: ${score}`}
         >
           {score}
         </button>
@@ -60,13 +66,15 @@ export function ScoreButtons({
 }
 
 function QuestionHeading({
+  id,
   level,
   children,
 }: {
+  id?: string;
   level: 2 | 3;
   children: ReactNode;
 }) {
-  return level === 2 ? <h2>{children}</h2> : <h3>{children}</h3>;
+  return level === 2 ? <h2 id={id}>{children}</h2> : <h3 id={id}>{children}</h3>;
 }
 
 export function QuestionList({
@@ -79,22 +87,66 @@ export function QuestionList({
   renderBeforeQuestion,
   renderAfterScoreButtons,
 }: QuestionListProps) {
+  const answeredCount = scores.filter((score) => score !== 0).length;
+  const firstUnansweredIndex = scores.findIndex((score) => score === 0);
+  const hasUnanswered = firstUnansweredIndex !== -1;
+  const questionCount = questions.length;
+
+  const handleJumpToUnanswered = () => {
+    if (!hasUnanswered || typeof document === 'undefined') {
+      return;
+    }
+
+    document
+      .getElementById(`question-${firstUnansweredIndex + 1}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
   return (
     <>
+      <div className="questionnaire-progress" aria-live="polite">
+        <span>
+          回答済み {answeredCount} / {questionCount}
+        </span>
+        {!disabled && hasUnanswered && (
+          <button
+            type="button"
+            className="command-button"
+            onClick={handleJumpToUnanswered}
+          >
+            未回答へ移動
+          </button>
+        )}
+      </div>
       {questions.map((question, index) => (
-        <div key={index}>
+        <section
+          key={index}
+          id={`question-${index + 1}`}
+          className="question-item"
+        >
           {renderBeforeQuestion?.(index)}
-          <QuestionHeading level={questionHeadingLevel}>
+          <QuestionHeading
+            id={`question-${index + 1}-label`}
+            level={questionHeadingLevel}
+          >
+            {index + 1}.{' '}
             {question}
           </QuestionHeading>
-          <ScoreButtons
-            options={scoreOptions}
-            selectedScore={scores[index]}
-            onSelect={(score) => onAnswer(index, score)}
-            disabled={disabled}
-          />
+          <div
+            className="score-button-group"
+            role="radiogroup"
+            aria-labelledby={`question-${index + 1}-label`}
+          >
+            <ScoreButtons
+              options={scoreOptions}
+              selectedScore={scores[index]}
+              questionIndex={index}
+              onSelect={(score) => onAnswer(index, score)}
+              disabled={disabled}
+            />
+          </div>
           {renderAfterScoreButtons?.(index)}
-        </div>
+        </section>
       ))}
     </>
   );
@@ -134,9 +186,11 @@ export function ToggleButton({
 }: ToggleButtonProps) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={selected ? 'selected' : ''}
+      className={`toggle-button${selected ? ' selected' : ''}`}
       disabled={disabled}
+      aria-pressed={selected}
     >
       {label}
     </button>
@@ -149,6 +203,15 @@ export function ShowResultsButton({
   onShow,
   withDivider = true,
 }: ShowResultsButtonProps) {
+  const handleShow = () => {
+    onShow();
+    window.setTimeout(() => {
+      document
+        .getElementById('results')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
+  };
+
   if (!canShow) {
     return null;
   }
@@ -157,8 +220,14 @@ export function ShowResultsButton({
     <>
       {withDivider && <hr style={{ margin: '30px' }} />}
       {!showResults && (
-        <div style={{ marginTop: '30px' }}>
-          <button onClick={onShow}>結果を表示</button>
+        <div className="show-results">
+          <button
+            type="button"
+            className="command-button primary"
+            onClick={handleShow}
+          >
+            結果を表示
+          </button>
         </div>
       )}
     </>
