@@ -4,6 +4,10 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 Deployed on Vercel: https://my-psychology-test-app.vercel.app/
 
+## Origin
+
+This project is derived from https://github.com/quantized-cube/my-psychology-test-app.
+
 ## Getting Started
 
 Use Node.js 24 LTS. This repository includes `.nvmrc` and `.node-version`
