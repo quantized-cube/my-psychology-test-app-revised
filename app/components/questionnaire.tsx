@@ -1,6 +1,8 @@
-import type { ReactNode } from 'react';
+import { useId } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 
 type ScoreButtonsProps = {
+  idPrefix: string;
   options: readonly number[];
   selectedScore: number;
   disabled?: boolean;
@@ -23,6 +25,7 @@ type ShowResultsButtonProps = {
 };
 
 type QuestionListProps = {
+  idPrefix?: string;
   questions: readonly string[];
   scores: readonly number[];
   scoreOptions: readonly number[];
@@ -39,24 +42,61 @@ type GroupedQuestionListProps = Omit<QuestionListProps, 'renderBeforeQuestion'> 
 };
 
 export function ScoreButtons({
+  idPrefix,
   options,
   selectedScore,
   disabled = false,
   questionIndex,
   onSelect,
 }: ScoreButtonsProps) {
+  const focusScoreButton = (score: number) => {
+    window.setTimeout(() => {
+      document
+        .getElementById(`${idPrefix}-question-${questionIndex + 1}-score-${score}`)
+        ?.focus();
+    }, 0);
+  };
+
+  const handleKeyDown = (
+    event: KeyboardEvent<HTMLButtonElement>,
+    optionIndex: number,
+  ) => {
+    const keyToIndex: Record<string, number> = {
+      ArrowDown: (optionIndex + 1) % options.length,
+      ArrowRight: (optionIndex + 1) % options.length,
+      ArrowUp: (optionIndex - 1 + options.length) % options.length,
+      ArrowLeft: (optionIndex - 1 + options.length) % options.length,
+      Home: 0,
+      End: options.length - 1,
+    };
+
+    const nextIndex = keyToIndex[event.key];
+
+    if (nextIndex === undefined) {
+      return;
+    }
+
+    event.preventDefault();
+    const nextScore = options[nextIndex];
+    onSelect(nextScore);
+    focusScoreButton(nextScore);
+  };
+
   return (
     <>
-      {options.map((score) => (
+      {options.map((score, optionIndex) => (
         <button
           key={score}
+          id={`${idPrefix}-question-${questionIndex + 1}-score-${score}`}
           type="button"
           onClick={() => onSelect(score)}
+          onKeyDown={(event) => handleKeyDown(event, optionIndex)}
           className={`score-button${selectedScore === score ? ' selected' : ''}`}
           disabled={disabled}
           role="radio"
           aria-checked={selectedScore === score}
           aria-label={`${questionIndex + 1}問目: ${score}`}
+          tabIndex={selectedScore === score || (selectedScore === 0 && optionIndex === 0) ? 0 : -1}
         >
           {score}
         </button>
@@ -78,6 +118,7 @@ function QuestionHeading({
 }
 
 export function QuestionList({
+  idPrefix,
   questions,
   scores,
   scoreOptions,
@@ -87,6 +128,8 @@ export function QuestionList({
   renderBeforeQuestion,
   renderAfterScoreButtons,
 }: QuestionListProps) {
+  const reactId = useId().replace(/:/g, '');
+  const uniqueIdPrefix = idPrefix ?? `questionnaire-${reactId}`;
   const answeredCount = scores.filter((score) => score !== 0).length;
   const firstUnansweredIndex = scores.findIndex((score) => score === 0);
   const hasUnanswered = firstUnansweredIndex !== -1;
@@ -98,8 +141,11 @@ export function QuestionList({
     }
 
     document
-      .getElementById(`question-${firstUnansweredIndex + 1}`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      .getElementById(`${uniqueIdPrefix}-question-${firstUnansweredIndex + 1}`)
+      ?.scrollIntoView({
+        behavior: getScrollBehavior(),
+        block: 'center',
+      });
   };
 
   return (
@@ -121,12 +167,12 @@ export function QuestionList({
       {questions.map((question, index) => (
         <section
           key={index}
-          id={`question-${index + 1}`}
+          id={`${uniqueIdPrefix}-question-${index + 1}`}
           className="question-item"
         >
           {renderBeforeQuestion?.(index)}
           <QuestionHeading
-            id={`question-${index + 1}-label`}
+            id={`${uniqueIdPrefix}-question-${index + 1}-label`}
             level={questionHeadingLevel}
           >
             {index + 1}.{' '}
@@ -135,9 +181,10 @@ export function QuestionList({
           <div
             className="score-button-group"
             role="radiogroup"
-            aria-labelledby={`question-${index + 1}-label`}
+            aria-labelledby={`${uniqueIdPrefix}-question-${index + 1}-label`}
           >
             <ScoreButtons
+              idPrefix={uniqueIdPrefix}
               options={scoreOptions}
               selectedScore={scores[index]}
               questionIndex={index}
@@ -206,9 +253,12 @@ export function ShowResultsButton({
   const handleShow = () => {
     onShow();
     window.setTimeout(() => {
-      document
-        .getElementById('results')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const results = document.getElementById('results');
+      results?.scrollIntoView({
+        behavior: getScrollBehavior(),
+        block: 'start',
+      });
+      results?.focus({ preventScroll: true });
     }, 0);
   };
 
@@ -232,4 +282,15 @@ export function ShowResultsButton({
       )}
     </>
   );
+}
+
+function getScrollBehavior(): ScrollBehavior {
+  if (
+    typeof window !== 'undefined'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    return 'auto';
+  }
+
+  return 'smooth';
 }
