@@ -186,6 +186,7 @@ export function QuestionList({
           </QuestionHeading>
           <div
             className="score-button-group"
+            data-score-count={scoreOptions.length}
             role="radiogroup"
             aria-labelledby={`${uniqueIdPrefix}-question-${index + 1}-label`}
           >
