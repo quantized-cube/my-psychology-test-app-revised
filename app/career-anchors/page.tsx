@@ -5,8 +5,8 @@ import Head from 'next/head';
 import Link from 'next/link'
 import { QuestionList, ShowResultsButton, ToggleButton } from '@/app/components/questionnaire';
 import { labels, questions, scoreOptions } from '@/app/data/career-anchors';
-import { addScores, allAnswered, sortLabeledScores, sum } from '@/app/lib/scoring';
-import { Bar, barChartData, horizontalBarOptions } from '@/app/components/charts';
+import { addScores, allAnswered, sum } from '@/app/lib/scoring';
+import { BarChart, SortButton, barChartData, horizontalBarOptions, useSortedLabeledScores } from '@/app/components/charts';
 
 export default function Home() {
   const [scores, setScores] = useState<number[]>(Array(questions.length).fill(0));
@@ -16,7 +16,6 @@ export default function Home() {
   const shouldShowResultsButton1 = allAnswered(scores); // scoresに0が含まれていないかチェック
   const shouldShowResultsButton2 = (sum(additionalScores) === 12);
   const shouldShowResultsButton = shouldShowResultsButton1 && shouldShowResultsButton2;
-  const [sortDescending, setSortDescending] = useState(false); // スコアの降順ソートトグル
 
   const handleAnswer = (index: number, score: number) => {
     const newScores = [...scores];
@@ -36,19 +35,16 @@ export default function Home() {
   const resultScores: number[] = Array(8).fill(0).map((_, i) =>
     (trueScores[i] + trueScores[i + 8] + trueScores[i + 16] + trueScores[i + 24] + trueScores[i + 32]) / 5
   );
-
-  const sortedScores = sortLabeledScores(labels, resultScores, 'desc');
-  const sortedLabels = sortedScores.map((score) => score.label);
-  const sortedResultScores = sortedScores.map((score) => score.value);
+  const {
+    isSorted: sortDescending,
+    displayedLabels,
+    displayedScores,
+    toggleSort: handleToggleSort,
+  } = useSortedLabeledScores({ labels, scores: resultScores, direction: 'desc' });
 
   const handleShowResults = () => {
     // 結果を表示するボタンをクリックしたら結果を表示
     setShowResults(true);
-  };
-
-  const handleToggleSort = () => {
-    // スコアのソート順を切り替える
-    setSortDescending(!sortDescending);
   };
 
   const options = horizontalBarOptions({
@@ -58,8 +54,8 @@ export default function Home() {
     xGridLineWidth: 2,
   });
   const chartData = barChartData({
-    labels: sortDescending ? sortedLabels : labels,
-    data: sortDescending ? sortedResultScores : resultScores,
+    labels: displayedLabels,
+    data: displayedScores,
   });
 
   return (
@@ -131,17 +127,16 @@ export default function Home() {
         {showResults && ( // 結果を表示する場合に表示
           <div>
             <h2>結果</h2>
-            <button onClick={handleToggleSort}>{sortDescending ? 'デフォルト順に並べ替え' : '降順に並べ替え'}</button>
-            <div className="mx-auto max-w-min">
-              <Bar // 棒グラフを表示
-                data={chartData}
-                height={350}
-                options={options}
-              />
-            </div>
-            {(sortDescending ? sortedLabels : labels).map((label, index) => (
+            <SortButton
+              isSorted={sortDescending}
+              onToggle={handleToggleSort}
+              defaultLabel="デフォルト順に並べ替え"
+              sortedLabel="降順に並べ替え"
+            />
+            <BarChart data={chartData} height={350} options={options} />
+            {displayedLabels.map((label, index) => (
               <div key={label}>
-                <p>{label}：{(sortDescending ? sortedResultScores : resultScores)[index].toFixed(2)}</p>
+                <p>{label}：{displayedScores[index].toFixed(2)}</p>
               </div>
             ))}
           </div>

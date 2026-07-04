@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { QuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { sum } from '@/app/lib/scoring';
-import { Bar, barChartData, horizontalBarOptions } from '@/app/components/charts';
+import { BarChart, barChartData, horizontalBarOptions } from '@/app/components/charts';
 
 
 const questions = [
@@ -70,14 +70,7 @@ export default function Home() {
           <div>
             <hr style={{ margin: '30px' }} />
             <h2>結果</h2>
-            <div className="mx-auto max-w-min">
-              <Bar // 棒グラフを表示
-                data={chartData}
-                // width={600}
-                height={150}
-                options={options}
-              />
-            </div>
+            <BarChart data={chartData} height={150} options={options} />
             <h3>結果1</h3>
             <p>{resultMessage1}</p>
             <h3>結果2</h3>
