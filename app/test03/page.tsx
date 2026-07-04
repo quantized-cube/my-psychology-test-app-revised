@@ -1,12 +1,11 @@
 'use client'
 
-import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
 import { GroupedQuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
-import { averageGroups, cumulativeLengths, sortLabeledScores } from '@/app/lib/scoring';
-import { Bar, barChartData, horizontalBarOptions } from '@/app/components/charts';
+import { averageGroups, cumulativeLengths } from '@/app/lib/scoring';
+import { BarChart, SortButton, barChartData, horizontalBarOptions, useSortedLabeledScores } from '@/app/components/charts';
 
 const labels = [
   'ED',
@@ -52,12 +51,14 @@ export default function Home() {
     answer: handleAnswer,
     show: handleShowResults,
   } = useQuestionnaire({ questionCount: questions.length });
-  const [sortDescending, setSortDescending] = useState(false); // スコアの降順ソートトグル
 
   const averageScores = averageGroups(scores, a_questions);
-  const sortedScores = sortLabeledScores(labels, averageScores, 'desc');
-  const sortedLabels = sortedScores.map((score) => score.label);
-  const sortedAverageScores = sortedScores.map((score) => score.value);
+  const {
+    isSorted: sortDescending,
+    displayedLabels,
+    displayedScores,
+    toggleSort: handleToggleSort,
+  } = useSortedLabeledScores({ labels, scores: averageScores, direction: 'desc' });
 
   const resultMessages: string[] = [];
   for (let i = 0; i < cumLengths.length - 1; i++) {
@@ -65,19 +66,13 @@ export default function Home() {
     resultMessages.push(resultMessage);
   }
 
-  const handleToggleSort = () => {
-    // スコアのソート順を切り替える
-    setSortDescending(!sortDescending);
-  };
-
-  const displayedScores = sortDescending ? sortedAverageScores : averageScores;
   const options = horizontalBarOptions({
     title: '結果のグラフ',
     xMax: 7,
     xStepSize: 1,
   });
   const chartData = barChartData({
-    labels: sortDescending ? sortedLabels : labels,
+    labels: displayedLabels,
     data: displayedScores,
     backgroundColor: (context: any) => (
       displayedScores[context.dataIndex] >= 4 ? 'rgba(200, 55, 80, 0.8)' : 'rgba(255, 99, 132, 0.4)'
@@ -122,15 +117,13 @@ export default function Home() {
         {showResults && ( // 結果を表示する場合に表示
           <div>
             <h2>結果</h2>
-            <button onClick={handleToggleSort}>{sortDescending ? '質問順に並べ替え' : '降順に並べ替え'}</button>
-            <div className="mx-auto max-w-min">
-              <Bar // 棒グラフを表示
-                data={chartData}
-                // width={600}
-                height={150}
-                options={options}
-              />
-            </div>
+            <SortButton
+              isSorted={sortDescending}
+              onToggle={handleToggleSort}
+              defaultLabel="質問順に並べ替え"
+              sortedLabel="降順に並べ替え"
+            />
+            <BarChart data={chartData} height={150} options={options} />
             {labels.map((label, index) => (
               <div key={label}>
                 <h3>結果{label}</h3>

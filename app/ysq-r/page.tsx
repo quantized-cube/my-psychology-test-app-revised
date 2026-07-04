@@ -1,13 +1,12 @@
 'use client'
 
-import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
 import { GroupedQuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { labels, questionGroups, questions, schemaLabels, scoreOptions } from '@/app/data/ysq-r';
-import { averageGroups, cumulativeLengths, sortLabeledScores } from '@/app/lib/scoring';
-import { Bar, barChartData, horizontalBarOptions } from '@/app/components/charts';
+import { averageGroups, cumulativeLengths } from '@/app/lib/scoring';
+import { BarChart, SortButton, barChartData, horizontalBarOptions, useSortedLabeledScores } from '@/app/components/charts';
 
 const cumLengths = cumulativeLengths(questionGroups);
 
@@ -19,19 +18,14 @@ export default function Home() {
     answer: handleAnswer,
     show: handleShowResults,
   } = useQuestionnaire({ questionCount: questions.length });
-  const [sortDescending, setSortDescending] = useState(false); // スコアの降順ソートトグル
 
   const averageScores = averageGroups(scores, questionGroups);
-  const sortedScores = sortLabeledScores(labels, averageScores, 'desc');
-  const sortedLabels = sortedScores.map((score) => score.label);
-  const sortedAverageScores = sortedScores.map((score) => score.value);
-
-  const handleToggleSort = () => {
-    // スコアのソート順を切り替える
-    setSortDescending(!sortDescending);
-  };
-
-  const displayedScores = sortDescending ? sortedAverageScores : averageScores;
+  const {
+    isSorted: sortDescending,
+    displayedLabels,
+    displayedScores,
+    toggleSort: handleToggleSort,
+  } = useSortedLabeledScores({ labels, scores: averageScores, direction: 'desc' });
   const options = horizontalBarOptions({
     title: 'あなたのスキーマの得点',
     xMax: 7,
@@ -39,7 +33,7 @@ export default function Home() {
     xGridLineWidth: (ctx: any) => [4].includes(ctx.tick.value) ? 4 : 2,
   });
   const chartData = barChartData({
-    labels: sortDescending ? sortedLabels : labels,
+    labels: displayedLabels,
     data: displayedScores,
     backgroundColor: (context: any) => (
       displayedScores[context.dataIndex] >= 4 ? 'rgba(200, 55, 80, 0.8)' : 'rgba(255, 99, 132, 0.4)'
@@ -100,15 +94,13 @@ export default function Home() {
         {showResults && ( // 結果を表示する場合に表示
           <div>
             <h2>結果</h2>
-            <button onClick={handleToggleSort}>{sortDescending ? '質問順に並べ替え' : '降順に並べ替え'}</button>
-            <div className="mx-auto max-w-min">
-              <Bar // 棒グラフを表示
-                data={chartData}
-                // width={600}
-                height={500}
-                options={options}
-              />
-            </div>
+            <SortButton
+              isSorted={sortDescending}
+              onToggle={handleToggleSort}
+              defaultLabel="質問順に並べ替え"
+              sortedLabel="降順に並べ替え"
+            />
+            <BarChart data={chartData} height={500} options={options} />
             {schemaLabels.map((label, index) => (
               <div key={label.code}>
                 <p>{label.code} {label.name}スキーマ：{averageScores[index].toFixed(2)}</p>

@@ -6,7 +6,7 @@ import { QuestionList, ShowResultsButton } from '@/app/components/questionnaire'
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { interpretations, questions, reverseItems, scoreOptions } from '@/app/data/nature-connectedness';
 import { adjustedScores, average, scoreByInterpretation } from '@/app/lib/scoring';
-import { Bar, barChartData, singleValueBarOptions } from '@/app/components/charts';
+import { BarChart, barChartData, singleValueBarOptions } from '@/app/components/charts';
 
 export default function NatureConnectedness() {
   const {
@@ -90,9 +90,7 @@ export default function NatureConnectedness() {
           <div>
             <h2>診断結果</h2>
             
-            <div className="mx-auto max-w-min">
-              <Bar data={chartData} height={350} options={chartOptions} />
-            </div>
+            <BarChart data={chartData} height={350} options={chartOptions} />
 
             <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '20px' }}>
               あなたのスコア: {finalScore.toFixed(2)}
