@@ -205,3 +205,15 @@ button:disabled {
     gap: 8px;
   }
 }
+
+@media (max-width: 360px) {
+  .score-button-group[data-score-count="6"],
+  .score-button-group[data-score-count="7"] {
+    display: grid;
+    grid-template-columns: repeat(3, 44px);
+  }
+
+  .score-button-group[data-score-count="7"] {
+    grid-template-columns: repeat(4, 44px);
+  }
+}
