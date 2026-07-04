@@ -140,16 +140,22 @@ export function QuestionList({
       return;
     }
 
+    const unansweredQuestionId = `${uniqueIdPrefix}-question-${firstUnansweredIndex + 1}`;
+    const firstScoreButtonId = `${unansweredQuestionId}-score-${scoreOptions[0]}`;
+
     document
-      .getElementById(`${uniqueIdPrefix}-question-${firstUnansweredIndex + 1}`)
+      .getElementById(unansweredQuestionId)
       ?.scrollIntoView({
         behavior: getScrollBehavior(),
         block: 'center',
       });
+    window.setTimeout(() => {
+      document.getElementById(firstScoreButtonId)?.focus();
+    }, 0);
   };
 
   return (
-    <>
+    <div className="questionnaire-list">
       <div className="questionnaire-progress" aria-live="polite">
         <span>
           回答済み {answeredCount} / {questionCount}
@@ -195,7 +201,7 @@ export function QuestionList({
           {renderAfterScoreButtons?.(index)}
         </section>
       ))}
-    </>
+    </div>
   );
 }
 

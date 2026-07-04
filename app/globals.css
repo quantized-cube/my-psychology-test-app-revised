@@ -111,6 +111,10 @@ button:disabled {
   opacity: 0.75;
 }
 
+.questionnaire-list {
+  position: relative;
+}
+
 .questionnaire-progress {
   position: sticky;
   top: 0;
