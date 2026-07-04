@@ -209,11 +209,11 @@ button:disabled {
 @media (max-width: 360px) {
   .score-button-group[data-score-count="6"],
   .score-button-group[data-score-count="7"] {
-    display: grid;
-    grid-template-columns: repeat(3, 44px);
+    width: 100%;
+    max-width: 148px;
   }
 
   .score-button-group[data-score-count="7"] {
-    grid-template-columns: repeat(4, 44px);
+    max-width: 200px;
   }
 }
