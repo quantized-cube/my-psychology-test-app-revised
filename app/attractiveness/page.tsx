@@ -3,29 +3,11 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
-import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
+import { GroupedQuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { labels, questionGroups, questions, scoreOptions } from '@/app/data/attractiveness';
 import { cumulativeLengths, sortLabeledScores, sumGroups } from '@/app/lib/scoring';
-import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import { Bar, barChartData, horizontalBarOptions } from '@/app/components/charts';
 
 const cumLengths = cumulativeLengths(questionGroups);
 
@@ -55,66 +37,22 @@ export default function Home() {
     setSortAscending(!sortAscending);
   };
 
-  // 棒グラフのデータ
-  const options = {
-    indexAxis: 'y' as const,
-    elements: {
-      bar: {
-        borderWidth: 5,
-      },
-    },
-    maintainAspectRatio: false,
-    responsive: true,
-    scales: {
-      x: {
-        min: 0,
-        max: 30,
-        ticks: {
-          stepSize: 5,
-        },
-      }
-    },
-    plugins: {
-      legend: {
-        // position: 'right' as const,
-        display: false,
-      },
-      title: {
-        display: true,
-        text: '魅力度のグラフ',
-      },
-    },
-  };
-  const barChartData = {
+  const displayedScores = sortAscending ? sortedSumScores : sumScores;
+  const options = horizontalBarOptions({
+    title: '魅力度のグラフ',
+    xMax: 30,
+    xStepSize: 5,
+  });
+  const chartData = barChartData({
     labels: sortAscending ? sortedLabels : labels,
-    datasets: [
-      {
-        label: 'スコア',
-        data: sortAscending ? sortedSumScores : sumScores,
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: (context: any) => {
-          // context.dataIndex は各バーのインデックスを表します
-          const score: any = sortAscending
-            ? sortedSumScores[context.dataIndex]
-            : sumScores[context.dataIndex];
-
-          // スコアが15未満の場合に色を変える
-          return score < 15 ? 'rgba(200, 55, 80, 0.8)' : 'rgba(255, 99, 132, 0.4)';
-        },
-        borderWidth: 3,
-        hoverBackgroundColor: (context: any) => {
-          // context.dataIndex は各バーのインデックスを表します
-          const score: any = sortAscending
-            ? sortedSumScores[context.dataIndex]
-            : sumScores[context.dataIndex];
-
-          // スコアが15未満の場合に色を変える
-          return score < 15 ? 'rgba(60, 150, 150, 0.8)' : 'rgba(80, 200, 200, 0.8)';
-        },
-        hoverBorderColor: 'rgba(75, 192, 192, 1)',
-      },
-    ],
-  };
+    data: displayedScores,
+    backgroundColor: (context: any) => (
+      displayedScores[context.dataIndex] < 15 ? 'rgba(200, 55, 80, 0.8)' : 'rgba(255, 99, 132, 0.4)'
+    ),
+    hoverBackgroundColor: (context: any) => (
+      displayedScores[context.dataIndex] < 15 ? 'rgba(60, 150, 150, 0.8)' : 'rgba(80, 200, 200, 0.8)'
+    ),
+  });
 
   return (
     <div>
@@ -143,19 +81,15 @@ export default function Home() {
         <p>
           5 = 完全に当てはまる
         </p>
-        {questions.map((question, index) => (
-          <div key={index}>
-            {cumLengths.includes(index) && <hr style={{ margin: '30px' }} />}
-            {cumLengths.includes(index) && <h2>{labels[cumLengths.indexOf(index)]}</h2>}
-            <h3>{question}</h3>
-            <ScoreButtons
-              options={scoreOptions}
-              selectedScore={scores[index]}
-              onSelect={(score) => handleAnswer(index, score)}
-              disabled={showResults}
-            />
-          </div>
-        ))}
+        <GroupedQuestionList
+          questions={questions}
+          scores={scores}
+          scoreOptions={scoreOptions}
+          onAnswer={handleAnswer}
+          disabled={showResults}
+          groupStarts={cumLengths}
+          groupLabels={labels}
+        />
         <ShowResultsButton
           canShow={shouldShowResultsButton}
           showResults={showResults}
@@ -166,7 +100,7 @@ export default function Home() {
             <h2>結果</h2>
             <div className="mx-auto max-w-min">
               <Bar // 棒グラフを表示
-                data={barChartData}
+                data={chartData}
                 // width={600}
                 height={150}
                 options={options}

@@ -2,39 +2,11 @@
 
 import Head from 'next/head';
 import Link from 'next/link'
-import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
+import { QuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { labels, questions, questionRows, reverseMax, scoreOptions } from '@/app/data/tipi-j';
 import { sumQuestionRowGroups } from '@/app/lib/scoring';
-import { Radar } from 'react-chartjs-2'; // react-chartjs-2をインポート
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PolarAreaController,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PolarAreaController,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import { Radar } from '@/app/components/charts';
 
 export default function Home() {
   const {
@@ -134,17 +106,13 @@ export default function Home() {
           私は自分自身のことを……
         </p>
 
-        {questions.map((question, index) => (
-          <div key={index}>
-            <h3>{question}</h3>
-            <ScoreButtons
-              options={scoreOptions}
-              selectedScore={scores[index]}
-              onSelect={(score) => handleAnswer(index, score)}
-              disabled={showResults}
-            />
-          </div>
-        ))}
+        <QuestionList
+          questions={questions}
+          scores={scores}
+          scoreOptions={scoreOptions}
+          onAnswer={handleAnswer}
+          disabled={showResults}
+        />
         <ShowResultsButton
           canShow={shouldShowResultsButton}
           showResults={showResults}

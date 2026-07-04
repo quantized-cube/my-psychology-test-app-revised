@@ -2,29 +2,11 @@
 
 import Head from 'next/head';
 import Link from 'next/link'
-import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
+import { QuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { interpretations, questions, reverseItems, scoreOptions } from '@/app/data/nature-connectedness';
 import { adjustedScores, average, scoreByInterpretation } from '@/app/lib/scoring';
-import { Bar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import { Bar, barChartData, singleValueBarOptions } from '@/app/components/charts';
 
 export default function NatureConnectedness() {
   const {
@@ -49,45 +31,20 @@ export default function NatureConnectedness() {
     2,
   );
 
-  // 棒グラフのデータ
-  const barChartData = {
+  const chartData = barChartData({
     labels: ['あなたのスコア'],
-    datasets: [
-      {
-        label: '自然とのつながり度',
-        data: [finalScore],
-        backgroundColor: ['rgba(34, 139, 34, 0.6)'],
-        borderColor: ['rgba(34, 139, 34, 1)'],
-        borderWidth: 2,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    maintainAspectRatio: false,
-    responsive: true,
-    scales: {
-      y: {
-        min: 0,
-        max: 5,
-        ticks: {
-          stepSize: 0.5,
-        },
-        grid: {
-          lineWidth: 2,
-        },
-      }
-    },
-    plugins: {
-      legend: {
-        display: false,
-      },
-      title: {
-        display: true,
-        text: 'ネイチャー・コネクテッドネス・スコア',
-      },
-    },
-  };
+    data: [finalScore],
+    label: '自然とのつながり度',
+    backgroundColor: ['rgba(34, 139, 34, 0.6)'],
+    borderColor: ['rgba(34, 139, 34, 1)'],
+    borderWidth: 2,
+    withHoverColors: false,
+  });
+  const chartOptions = singleValueBarOptions({
+    title: 'ネイチャー・コネクテッドネス・スコア',
+    yMax: 5,
+    yStepSize: 0.5,
+  });
 
   return (
     <div>
@@ -115,19 +72,13 @@ export default function NatureConnectedness() {
         <hr style={{ margin: '30px' }} />
         
         <h2>質問</h2>
-        {questions.map((question, index) => (
-          <div key={index}>
-            <h3>
-              {question}
-            </h3>
-            <ScoreButtons
-              options={scoreOptions}
-              selectedScore={scores[index]}
-              onSelect={(score) => handleAnswer(index, score)}
-              disabled={showResults}
-            />
-          </div>
-        ))}
+        <QuestionList
+          questions={questions}
+          scores={scores}
+          scoreOptions={scoreOptions}
+          onAnswer={handleAnswer}
+          disabled={showResults}
+        />
 
         <ShowResultsButton
           canShow={shouldShowResultsButton}
@@ -140,7 +91,7 @@ export default function NatureConnectedness() {
             <h2>診断結果</h2>
             
             <div className="mx-auto max-w-min">
-              <Bar data={barChartData} height={350} options={chartOptions} />
+              <Bar data={chartData} height={350} options={chartOptions} />
             </div>
 
             <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '20px' }}>

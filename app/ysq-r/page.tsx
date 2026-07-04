@@ -3,31 +3,11 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
-import { ScoreButtons, ShowResultsButton } from '@/app/components/questionnaire';
+import { GroupedQuestionList, ShowResultsButton } from '@/app/components/questionnaire';
 import { useQuestionnaire } from '@/app/hooks/useQuestionnaire';
 import { labels, questionGroups, questions, schemaLabels, scoreOptions } from '@/app/data/ysq-r';
 import { averageGroups, cumulativeLengths, sortLabeledScores } from '@/app/lib/scoring';
-import { Bar } from 'react-chartjs-2'; // react-chartjs-2をインポート
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-
+import { Bar, barChartData, horizontalBarOptions } from '@/app/components/charts';
 
 const cumLengths = cumulativeLengths(questionGroups);
 
@@ -51,65 +31,23 @@ export default function Home() {
     setSortDescending(!sortDescending);
   };
 
-  // 棒グラフのデータ
-  const options = {
-    indexAxis: 'y' as const,
-    elements: {
-      bar: {
-        borderWidth: 5,
-      },
-    },
-    maintainAspectRatio: false,
-    responsive: true,
-    scales: {
-      x: {
-        min: 0,
-        max: 7,
-        ticks: {
-          stepSize: 1,
-        },
-        grid: {
-          lineWidth: (ctx: any) => [4].includes(ctx.tick.value) ? 4 : 2,
-        },
-      }
-    },
-    plugins: {
-      legend: {
-        // position: 'right' as const,
-        display: false,
-      },
-      title: {
-        display: true,
-        text: 'あなたのスキーマの得点',
-      },
-    },
-  };
-  const barChartData = {
+  const displayedScores = sortDescending ? sortedAverageScores : averageScores;
+  const options = horizontalBarOptions({
+    title: 'あなたのスキーマの得点',
+    xMax: 7,
+    xStepSize: 1,
+    xGridLineWidth: (ctx: any) => [4].includes(ctx.tick.value) ? 4 : 2,
+  });
+  const chartData = barChartData({
     labels: sortDescending ? sortedLabels : labels,
-    datasets: [
-      {
-        label: 'スコア',
-        data: sortDescending ? sortedAverageScores : averageScores,
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: (context: any) => {
-          const score: any = sortDescending
-            ? sortedAverageScores[context.dataIndex]
-            : averageScores[context.dataIndex];
-          // スコアが4以上の場合に色を変える
-          return score >= 4 ? 'rgba(200, 55, 80, 0.8)' : 'rgba(255, 99, 132, 0.4)';
-        },
-        borderWidth: 3,
-        hoverBackgroundColor: (context: any) => {
-          const score: any = sortDescending
-            ? sortedAverageScores[context.dataIndex]
-            : averageScores[context.dataIndex];
-          // スコアが4以上の場合に色を変える
-          return score >= 4 ? 'rgba(60, 150, 150, 0.8)' : 'rgba(80, 200, 200, 0.8)';
-        },
-        hoverBorderColor: 'rgba(75, 192, 192, 1)',
-      },
-    ],
-  };
+    data: displayedScores,
+    backgroundColor: (context: any) => (
+      displayedScores[context.dataIndex] >= 4 ? 'rgba(200, 55, 80, 0.8)' : 'rgba(255, 99, 132, 0.4)'
+    ),
+    hoverBackgroundColor: (context: any) => (
+      displayedScores[context.dataIndex] >= 4 ? 'rgba(60, 150, 150, 0.8)' : 'rgba(80, 200, 200, 0.8)'
+    ),
+  });
 
   return (
     <div>
@@ -145,19 +83,15 @@ export default function Home() {
           6 = 完璧に当てはまる
         </p>
 
-        {questions.map((question, index) => (
-          <div key={index}>
-            {cumLengths.includes(index) && <hr style={{ margin: '30px' }} />}
-            {cumLengths.includes(index) && <h2>{labels[cumLengths.indexOf(index)]}</h2>}
-            <h3>{question}</h3>
-            <ScoreButtons
-              options={scoreOptions}
-              selectedScore={scores[index]}
-              onSelect={(score) => handleAnswer(index, score)}
-              disabled={showResults}
-            />
-          </div>
-        ))}
+        <GroupedQuestionList
+          questions={questions}
+          scores={scores}
+          scoreOptions={scoreOptions}
+          onAnswer={handleAnswer}
+          disabled={showResults}
+          groupStarts={cumLengths}
+          groupLabels={labels}
+        />
         <ShowResultsButton
           canShow={shouldShowResultsButton}
           showResults={showResults}
@@ -169,7 +103,7 @@ export default function Home() {
             <button onClick={handleToggleSort}>{sortDescending ? '質問順に並べ替え' : '降順に並べ替え'}</button>
             <div className="mx-auto max-w-min">
               <Bar // 棒グラフを表示
-                data={barChartData}
+                data={chartData}
                 // width={600}
                 height={500}
                 options={options}

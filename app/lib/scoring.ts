@@ -1,10 +1,3 @@
-export type ScoreTerm =
-  | number
-  | {
-      item: number;
-      reverseMax: number;
-    };
-
 export type LabeledScore = {
   label: string;
   value: number;
@@ -30,22 +23,6 @@ export function average(scores: number[]) {
 
 export function reverseScore(score: number, reverseMax: number) {
   return reverseMax - score;
-}
-
-export function scoreTerm(scores: number[], term: ScoreTerm) {
-  if (typeof term === 'number') {
-    return scores[term - 1];
-  }
-
-  return reverseScore(scores[term.item - 1], term.reverseMax);
-}
-
-export function sumTerms(scores: number[], terms: ScoreTerm[]) {
-  return sum(terms.map((term) => scoreTerm(scores, term)));
-}
-
-export function averageTerms(scores: number[], terms: ScoreTerm[]) {
-  return terms.length === 0 ? 0 : sumTerms(scores, terms) / terms.length;
 }
 
 export function cumulativeLengths(groups: readonly unknown[][]) {
